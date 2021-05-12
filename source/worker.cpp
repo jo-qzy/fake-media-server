@@ -2,15 +2,20 @@
 // Created by BoringWednesday on 2021/5/9.
 //
 
+#include "core.h"
 #include "worker.h"
-#include "log.h"
 #include <unistd.h>
+#include <csignal>
 
 bool Worker::interrupt = false;
 
-void Worker::Run()
+void Worker::run()
 {
-    if (!RegisterSignal()) {
+    // if (!rename_worker()) {
+    //
+    // }
+
+    if (!register_signal()) {
         return;
     }
 
@@ -20,20 +25,20 @@ void Worker::Run()
     }
 }
 
-void Worker::Stop()
+void Worker::stop()
 {
     interrupt = true;
 }
 
-bool Worker::RegisterSignal()
+bool Worker::register_signal()
 {
-    if (signal(SIGRTMIN + 1, SignalHandler) == SIG_ERR) {
+    if (signal(SIGQUIT, signal_handler) == SIG_ERR) {
         LOG(ERROR) << "worker register signal handler failed.";
 
         return false;
     }
 
-    if (signal(SIGINT, SIG_IGN) == SIG_ERR) {
+    if (signal(SIGINT, SIG_DFL) == SIG_ERR) {
         LOG(ERROR) << "worker register signal handler failed.";
 
         return false;
@@ -42,9 +47,11 @@ bool Worker::RegisterSignal()
     return true;
 }
 
-void Worker::SignalHandler(int signal)
+void Worker::signal_handler(int signal)
 {
-    LOG(INFO) << "Fake Media Server worker receive SIGRTMIN + 1...";
+    if (signal == SIGQUIT) {
+        LOG(INFO) << "Fake Media Server worker receive SIGQUIT.";
+    }
 
-    Stop();
+    stop();
 }

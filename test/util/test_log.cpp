@@ -2,7 +2,7 @@
 // Created by BoringWednesday on 2021/5/9.
 //
 
-#include "log.h"
+#include <util/log.h>
 
 void test_log()
 {
@@ -11,4 +11,11 @@ void test_log()
 
     LOG(INFO) << "test3";
 
+}
+
+int main()
+{
+    test_log();
+
+    return 0;
 }

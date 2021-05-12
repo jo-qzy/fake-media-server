@@ -5,7 +5,7 @@ Just a small project use for learning media server.
 - Fake Media Server **cannot use in any online project**
 - Fake Media Server **performance is very poor**
 - Fake Media Server **does not use third party libraries (except OpenSSL)**
-- I write code the way I want to write
+- Fake Media Server **follow the principle of writing the simplest code possible**
 
 # Feature
 

@@ -6,6 +6,7 @@
 #define FAKE_MEDIA_SERVER_LOG_H
 
 
+#include <cstdio>
 #include <unistd.h>
 #include <iostream>
 #include <sstream>
@@ -55,6 +56,8 @@ public:
         if (level >= min_level) {
             os << endl;
             cout << os.str();
+
+            flush(cout);
         }
     }
 

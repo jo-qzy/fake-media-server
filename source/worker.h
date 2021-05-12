@@ -9,11 +9,11 @@
 class Worker {
     // TODO: singleton mode
 public:
-    void Run();
-    static void Stop();
+    void run();
+    static void stop();
 private:
-    static bool RegisterSignal();
-    static void SignalHandler(int signal);
+    bool register_signal();
+    static void signal_handler(int signal);
 
 private:
 

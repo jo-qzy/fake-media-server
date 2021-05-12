@@ -1,0 +1,4 @@
+PROJECT(MediaLib)
+
+ADD_SUBDIRECTORY(libecho)
+ADD_SUBDIRECTORY(librtmp)

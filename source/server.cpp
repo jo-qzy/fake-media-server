@@ -2,8 +2,8 @@
 // Created by BoringWednesday on 2021/5/9.
 //
 
-#include "fake_media_server.h"
-#include "log.h"
+#include "core.h"
+#include "server.h"
 #include "worker.h"
 #include <csignal>
 #include <unistd.h>
@@ -14,25 +14,42 @@ using namespace std;
 bool FakeMediaServer::interrupt = false;
 
 FakeMediaServer::FakeMediaServer(const char *conf_path)
-    : master_mode(true), worker_flag(false)
+    : worker_flag(false), server_conf(nullptr)
 {
     this->conf_path = conf_path;
 }
 
-void FakeMediaServer::Run()
+void FakeMediaServer::run()
 {
-    pid_t child_pid;
+    pid_t       child_pid;
+    MainConf   *main_conf;
 
-    // TODO: parse conf
-    master_mode = true;
-    int worker_num = 2;
+    if (ServerConf::parse_conf(conf_path) != 0) {
+        LOG(ERROR) << "parse conf error";
+
+        return;
+    }
+
+    server_conf = ServerConf::get_server_conf();
+    if (server_conf == nullptr) {
+        LOG(ERROR) << "parse conf failed";
+
+        return;
+    }
 
     LOG(INFO) << "Fake Media Server is online.";
 
-    for (int i = 1; i <= worker_num; i++) {
-        if (!CreateWorker(i)) {
+    main_conf = ServerConf::get_main_conf();
+
+    /* master mode is off, worker reset into 1 */
+    if (!main_conf->master_mode) {
+        main_conf->worker_num = 1;
+    }
+
+    for (int i = 1; i <= main_conf->worker_num; i++) {
+        if (!create_worker(i)) {
             interrupt = true;
-            master_mode = true;
+            main_conf->master_mode = true;
 
             break;
         }
@@ -42,13 +59,13 @@ void FakeMediaServer::Run()
         }
     }
 
-    if (!master_mode) {
+    if (!main_conf->master_mode) {
         LOG(INFO) << "Fake Media Server master mode is off, master begin quit.";
 
         return;
     }
 
-    if (!RegisterSignal()) {
+    if (!register_signal()) {
         return;
     }
 
@@ -64,7 +81,7 @@ void FakeMediaServer::Run()
                 worker_map.erase(child_pid);
 
                 /* Restart new worker */
-                if (!CreateWorker(it->second)) {
+                if (!create_worker(it->second)) {
                     LOG(FATAL) << "try to restart worker failed.";
                 }
             }
@@ -73,18 +90,18 @@ void FakeMediaServer::Run()
         sleep(1);
     }
 
-    StopAllWorker();
+    stop_worker();
 }
 
-void FakeMediaServer::Stop()
+void FakeMediaServer::stop()
 {
     interrupt = true;
 }
 
-void FakeMediaServer::StopAllWorker()
+void FakeMediaServer::stop_worker()
 {
     for (auto it: worker_map) {
-        kill(it.first, SIGRTMIN + 1);
+       kill(it.first, SIGQUIT);
     }
 
     /* No need to call waitpid() */
@@ -92,8 +109,19 @@ void FakeMediaServer::StopAllWorker()
     worker_map.clear();
 }
 
-bool FakeMediaServer::CreateWorker(int serial)
+bool FakeMediaServer::create_worker(int serial)
 {
+    MainConf *main_conf = ServerConf::get_main_conf();
+
+    if (!main_conf->master_mode) {
+        Worker worker;
+
+        worker_flag = true;
+        worker.run();
+
+        return true;
+    }
+
     pid_t pid = fork();
 
     if (pid < 0) {
@@ -103,8 +131,7 @@ bool FakeMediaServer::CreateWorker(int serial)
         Worker worker;
 
         worker_flag = true;
-
-        worker.Run();
+        worker.run();
 
         LOG(WARN) << "worker no." << serial << " is ready to quit...";
     } else {
@@ -114,9 +141,9 @@ bool FakeMediaServer::CreateWorker(int serial)
     return true;
 }
 
-bool FakeMediaServer::RegisterSignal()
+bool FakeMediaServer::register_signal()
 {
-    if (signal(SIGINT, SignalHandler) == SIG_ERR) {
+    if (signal(SIGINT, signal_handler) == SIG_ERR) {
         LOG(ERROR) << "master register signal handler failed.";
 
         return false;
@@ -125,9 +152,9 @@ bool FakeMediaServer::RegisterSignal()
     return true;
 }
 
-void FakeMediaServer::SignalHandler(int signal)
+void FakeMediaServer::signal_handler(int signal)
 {
     LOG(INFO) << "Fake Media Server receive SIGINT...";
 
-    Stop();
+    stop();
 }
