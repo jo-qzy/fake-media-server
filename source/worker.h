@@ -5,18 +5,21 @@
 #ifndef FAKE_MEDIA_SERVER_WORKER_H
 #define FAKE_MEDIA_SERVER_WORKER_H
 
+#include <sys/epoll.h>
 
 class Worker {
-    // TODO: singleton mode
 public:
+    Worker();
     void run();
     static void stop();
+
 private:
+    void event_loop();
+
     bool register_signal();
     static void signal_handler(int signal);
 
 private:
-
     static bool     interrupt;
 };
 

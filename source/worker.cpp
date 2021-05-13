@@ -6,28 +6,43 @@
 #include "worker.h"
 #include <unistd.h>
 #include <csignal>
+#include <memory>
+#include <sys/epoll.h>
+
+using namespace std;
 
 bool Worker::interrupt = false;
 
+Worker::Worker()
+{}
+
 void Worker::run()
 {
-    // if (!rename_worker()) {
-    //
-    // }
-
     if (!register_signal()) {
         return;
     }
 
-    while (!interrupt) {
-        LOG(INFO) << "Worker run...";
-        sleep(1);
-    }
+    event_loop();
 }
 
 void Worker::stop()
 {
     interrupt = true;
+}
+
+void Worker::event_loop()
+{
+    int epoll_id;
+    unique_ptr<epoll_event> events(new epoll_event[1024]);
+
+    epoll_id = epoll_create(1);
+    if (epoll_id != 0) {
+        return;
+    }
+
+    while (!interrupt) {
+        epoll_wait(epoll_id, events.get(), 1024, 100);
+    }
 }
 
 bool Worker::register_signal()

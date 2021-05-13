@@ -15,4 +15,4 @@ COPY test/ test/
 COPY protocol/ protocol/
 
 # Build Fake Media Service
-RUN cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release
+RUN cmake -B build.linux -DCMAKE_BUILD_TYPE=Release && cmake --build build.linux --config Release

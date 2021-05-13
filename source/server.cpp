@@ -32,7 +32,7 @@ void FakeMediaServer::run()
 
     server_conf = ServerConf::get_server_conf();
     if (server_conf == nullptr) {
-        LOG(ERROR) << "parse conf failed";
+        LOG(ERROR) << "parse conf " << conf_path << " failed";
 
         return;
     }
@@ -55,6 +55,8 @@ void FakeMediaServer::run()
         }
 
         if (worker_flag) {
+            LOG(WARN) << "Fake Media Server ready to exit.";
+
             return;
         }
     }
