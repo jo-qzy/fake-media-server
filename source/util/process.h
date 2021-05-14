@@ -6,7 +6,7 @@
 #define FAKE_MEDIA_SERVER_PROCESS_H
 
 
-int register_signal();
+int register_signal(int signal, void (*handler)(int));
 
 
 #endif //FAKE_MEDIA_SERVER_PROCESS_H

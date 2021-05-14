@@ -1,7 +1,7 @@
 FROM debian:10.9
 
 # Change apt official source to aliyun source
-RUN sed -i 's/\(security\|deb\).debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
+RUN sed -i 's/\(security\|deb\|ftp\).debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
 
 # Installation project dependency
 RUN apt-get update && apt-get install -y cmake make g++
