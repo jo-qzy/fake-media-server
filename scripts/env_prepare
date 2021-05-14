@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export SCRIPT_PATH=`pwd`
+export PROJECT_DIR=${SCRIPT_PATH%/*}
+export PROJECT_NAME=${PROJECT_DIR##*/}
