@@ -5,13 +5,14 @@
 
 source env_prepare
 
-IMAGE_NAME="clion_debug_image"
+DOCKERFILE="Dockerfile.debian"
+IMAGE_NAME="clion/remote-cpp-env"
 IMAGE_TAG="v0.1"
 CONTAINER_NAME="clion_debug"
-CHECK_STATUS=`docker images | grep $IMAGE_NAME`
-#
-#if [[ $CHECK_STATUS = "" ]]; then
-#    docker build -t $IMAGE_NAME:$IMAGE_TAG .
-#fi
+CHECK_STATUS=`docker images | grep $IMAGE_NAME | grep $IMAGE_TAG`
 
-docker run -d -p 2222:2222 -v $PROJECT_DIR:/root/$PROJECT_NAME --name $CONTAINER_NAME $IMAGE_NAME:$IMAGE_TAG
+if [[ $CHECK_STATUS = "" ]]; then
+    docker build -t $IMAGE_NAME:$IMAGE_TAG -f $DOCKERFILE .
+fi
+
+docker run -d --cap-add sys_ptrace -p127.0.0.1:2222:22 --name $CONTAINER_NAME $IMAGE_NAME:$IMAGE_TAG

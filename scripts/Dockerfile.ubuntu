@@ -1,0 +1,35 @@
+# CLion remote docker environment (How to build docker container, run and stop it)
+#
+# Build and run:
+#   docker build -t clion/remote-cpp-env:0.5 -f Dockerfile .
+#   docker run -d --cap-add sys_ptrace -p127.0.0.1:2222:22 --name clion_remote_env clion/remote-cpp-env:0.5
+#   # ssh-keygen -f "$HOME/.ssh/known_hosts" -R "[localhost]:2222"
+#
+# stop:
+#   docker stop clion_remote_env
+#
+# ssh credentials (test user):
+#   user@password
+
+FROM ubuntu:20.04
+
+RUN sed -i 's/\(archive\|security\|ftp\).ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
+RUN DEBIAN_FRONTEND="noninteractive" apt-get update \
+    && apt-get install -y tzdata \
+    && apt-get install -y \
+        ssh build-essential gcc g++ gdb \
+        clang cmake rsync tar python tzdata \
+    && apt-get clean
+
+RUN (                                                       \
+        echo 'LogLevel DEBUG2';                             \
+        echo 'PermitRootLogin yes';                         \
+        echo 'PasswordAuthentication yes';                  \
+        echo 'Subsystem sftp /usr/lib/openssh/sftp-server'; \
+    ) > /etc/ssh/sshd_config_clion                          \
+    && mkdir /run/sshd
+
+RUN yes password | passwd root \
+    && usermod -s /bin/bash root
+
+CMD ["/usr/sbin/sshd", "-D", "-e", "-f", "/etc/ssh/sshd_config_clion"]

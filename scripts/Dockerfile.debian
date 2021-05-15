@@ -1,0 +1,19 @@
+FROM debian:10.9
+
+RUN sed -i 's/\(security\|deb\|ftp\).debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
+RUN DEBIAN_FRONTEND="noninteractive" apt-get update \
+    && apt-get install -y \
+        ssh build-essential gcc g++ gdb \
+        clang cmake rsync tar python tzdata \
+    && apt-get clean
+
+RUN (                                                       \
+        echo 'LogLevel INFO';                               \
+        echo 'PermitRootLogin yes';                         \
+        echo 'PasswordAuthentication yes';                  \
+        echo 'Subsystem sftp /usr/lib/openssh/sftp-server'; \
+    ) > /etc/ssh/sshd_config_clion                          \
+    && mkdir /run/sshd                                      \
+    && yes password | passwd root
+
+CMD ["/usr/sbin/sshd", "-d", "-e", "-f", "/etc/ssh/sshd_config_clion"]
