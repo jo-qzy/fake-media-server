@@ -2,7 +2,7 @@
 // Created by BoringWednesday on 2021/5/11.
 //
 
-#include <util/config.h>
+#include <common/config.h>
 
 void test_config()
 {

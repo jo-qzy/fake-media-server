@@ -5,7 +5,7 @@
 #include "core.h"
 #include "server.h"
 #include "worker.h"
-#include <csignal>
+#include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
 
@@ -116,10 +116,10 @@ bool FakeMediaServer::create_worker(int serial)
     MainConf *main_conf = ServerConf::get_main_conf();
 
     if (!main_conf->master_mode) {
-        Worker worker;
+        Worker *worker = Worker::create_worker(1024);
 
         worker_flag = true;
-        worker.run();
+        worker->run();
 
         return true;
     }
@@ -130,13 +130,15 @@ bool FakeMediaServer::create_worker(int serial)
         return false;
     } else if (pid == 0) {
         /* Create worker and run loop */
-        Worker worker;
+        Worker *worker = Worker::create_worker(1024);
 
         worker_flag = true;
-        worker.run();
+        worker->run();
 
         LOG(WARN) << "worker no." << serial << " is ready to quit...";
+
     } else {
+        /* Add Worker IOLoop pid into worker_map, so we can manage it */
         worker_map[pid] = serial;
     }
 

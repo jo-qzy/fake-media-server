@@ -5,24 +5,31 @@
 #ifndef FAKE_MEDIA_SERVER_IOLOOP_H
 #define FAKE_MEDIA_SERVER_IOLOOP_H
 
+class Event;
 
 class IOLoop
 {
 public:
-    IOLoop(int max_connections);
-    ~IOLoop();
+    explicit IOLoop(int max_events);
+    virtual ~IOLoop();
 
+    int create();
     void run();
-    void stop();
+    static void stop();
 
-private:
+    int add_event(Event *ev);
+    int del_event(Event *ev);
+    int mod_event(Event *ev);
+
+protected:
     void event_loop();
 
-private:
+protected:
     int             poll_id;
     void           *event_ptr;
     int             event_num;
-    bool            interrupt;
+
+    static bool     interrupt;
 };
 
 

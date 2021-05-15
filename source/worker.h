@@ -5,21 +5,22 @@
 #ifndef FAKE_MEDIA_SERVER_WORKER_H
 #define FAKE_MEDIA_SERVER_WORKER_H
 
-#include "ioloop.h"
+#include "common/ioloop.h"
 
-class Worker
+class Worker : public IOLoop
 {
 public:
-    Worker();
-    ~Worker();
-
-    void run();
+    static Worker * create_worker(int max_events);
+    static Worker * get_worker();
 
 private:
+    explicit Worker(int max_events);
+    virtual ~Worker();
+
     static void signal_handler(int signal);
 
 private:
-    IOLoop *io_loop;
+    static Worker *worker_instance;
 };
 
 

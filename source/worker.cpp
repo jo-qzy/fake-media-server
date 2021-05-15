@@ -4,37 +4,49 @@
 
 #include "core.h"
 #include "worker.h"
-#include "util/process.h"
-#include <csignal>
-#include <unistd.h>
+#include "common/process.h"
+#include <signal.h>
 
-using namespace std;
+Worker *Worker::worker_instance = nullptr;
 
-Worker::Worker()
-{}
-
-Worker::~Worker()
+Worker * Worker::create_worker(int max_events)
 {
-    delete io_loop;
+    if (worker_instance == nullptr) {
+        worker_instance = new Worker(max_events);
+    }
+
+    return worker_instance;
 }
 
-void Worker::run()
+Worker * Worker::get_worker()
+{
+    if (worker_instance == nullptr) {
+        return create_worker(1024);
+    }
+
+    return worker_instance;
+}
+
+Worker::Worker(int max_events)
+    : IOLoop(max_events)
 {
     if (register_signal(SIGQUIT, signal_handler) != 0) {
-        return;
+        interrupt = true;
     }
 
     if (register_signal(SIGINT, SIG_DFL) != 0) {
-        return;
+        interrupt = true;
     }
-
-    io_loop = new IOLoop(1024);
-    io_loop->run();
 }
+
+Worker::~Worker()
+{}
 
 void Worker::signal_handler(int signal)
 {
     if (signal == SIGQUIT) {
         LOG(INFO) << "Fake Media Server worker receive SIGQUIT.";
     }
+
+    stop();
 }
