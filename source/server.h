@@ -6,7 +6,7 @@
 #define FAKE_MEDIA_SERVER_H
 
 #include "conf.h"
-#include <common/config.h>
+#include <util/config.h>
 #include <map>
 #include <string>
 #include <csignal>

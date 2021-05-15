@@ -4,7 +4,7 @@
 
 #include "core.h"
 #include "worker.h"
-#include "common/process.h"
+#include "util/process.h"
 #include <signal.h>
 
 Worker *Worker::worker_instance = nullptr;
@@ -13,6 +13,13 @@ Worker * Worker::create_worker(int max_events)
 {
     if (worker_instance == nullptr) {
         worker_instance = new Worker(max_events);
+
+        if (worker_instance->create() != 0) {
+            delete worker_instance;
+            worker_instance = nullptr;
+
+            return nullptr;
+        }
     }
 
     return worker_instance;

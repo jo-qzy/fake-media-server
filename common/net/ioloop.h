@@ -10,7 +10,7 @@ class Event;
 class IOLoop
 {
 public:
-    explicit IOLoop(int max_events);
+    explicit IOLoop(int max_events, int interval = 1000);
     virtual ~IOLoop();
 
     int create();
@@ -26,6 +26,7 @@ protected:
 
 protected:
     int             poll_id;
+    int             poll_timeout;
     void           *event_ptr;
     int             event_num;
 

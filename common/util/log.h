@@ -18,6 +18,12 @@ using namespace std;
 #define LOG(level)      \
     Log(FILENAME, __LINE__, LOG_##level)
 
+#ifdef DEBUG
+#define DLOG(level) LOG(level)
+#else
+#define DLOG(level) FakeLog()
+#endif
+
 static const char *level_str[] = {
     "DEBUG", "INFO", "WARN",
     "ERROR", "FATAL"
@@ -76,6 +82,15 @@ private:
     LogLevel        level;
     ostringstream   os;
 
+};
+
+class FakeLog{
+public:
+    template<typename T>
+    FakeLog &operator<<(const T &t)
+    {
+        return *this;
+    }
 };
 
 

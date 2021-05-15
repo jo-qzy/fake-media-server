@@ -115,10 +115,17 @@ bool FakeMediaServer::create_worker(int serial)
 {
     MainConf *main_conf = ServerConf::get_main_conf();
 
+    // TODO: simplify code, some code is the same
     if (!main_conf->master_mode) {
         Worker *worker = Worker::create_worker(1024);
 
         worker_flag = true;
+        if (worker == nullptr) {
+            LOG(FATAL) << "Server create worker failed.";
+
+            return false;
+        }
+
         worker->run();
 
         return true;
@@ -133,6 +140,12 @@ bool FakeMediaServer::create_worker(int serial)
         Worker *worker = Worker::create_worker(1024);
 
         worker_flag = true;
+        if (worker == nullptr) {
+            LOG(FATAL) << "Server create worker failed.";
+
+            return false;
+        }
+
         worker->run();
 
         LOG(WARN) << "worker no." << serial << " is ready to quit...";

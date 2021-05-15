@@ -10,6 +10,16 @@ Event::Event(IOLoop *io_loop, int fd)
     : fd(fd), events(0), is_add(false), io_loop(io_loop)
 {}
 
+int Event::get_fd()
+{
+    return fd;
+}
+
+int Event::get_events()
+{
+    return events;
+}
+
 void Event::enable_read()
 {
     if (events & EPOLLIN) {

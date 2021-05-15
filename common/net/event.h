@@ -12,6 +12,9 @@ class Event
 public:
     explicit Event(IOLoop *loop, int fd = -1);
 
+    int get_fd();
+    int get_events();
+
     virtual int read_handler() = 0;
     virtual int write_handler() = 0;
 

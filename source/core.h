@@ -6,7 +6,7 @@
 #define FAKE_MEDIA_SERVER_CORE_H
 
 
-#include <common/log.h>
+#include <util/log.h>
 
 #define FMS_OK      0
 #define FMS_ERROR   1
