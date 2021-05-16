@@ -3,12 +3,15 @@
 //
 
 #include "event.h"
-#include "ioloop.h"
+#include "io_loop.h"
+#include <unistd.h>
 #include <sys/epoll.h>
 
 Event::Event(IOLoop *io_loop, int fd)
     : fd(fd), events(0), is_add(false), io_loop(io_loop)
 {}
+
+Event::~Event() = default;
 
 int Event::get_fd()
 {

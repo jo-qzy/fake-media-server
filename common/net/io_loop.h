@@ -2,8 +2,8 @@
 // Created by BoringWednesday on 2021/5/13.
 //
 
-#ifndef FAKE_MEDIA_SERVER_IOLOOP_H
-#define FAKE_MEDIA_SERVER_IOLOOP_H
+#ifndef FAKE_MEDIA_SERVER_IO_LOOP_H
+#define FAKE_MEDIA_SERVER_IO_LOOP_H
 
 class Event;
 
@@ -34,4 +34,4 @@ protected:
 };
 
 
-#endif //FAKE_MEDIA_SERVER_IOLOOP_H
+#endif //FAKE_MEDIA_SERVER_IO_LOOP_H

@@ -5,7 +5,7 @@
 #ifndef FAKE_MEDIA_SERVER_WORKER_H
 #define FAKE_MEDIA_SERVER_WORKER_H
 
-#include <net/ioloop.h>
+#include <net/io_loop.h>
 
 class Worker : public IOLoop
 {

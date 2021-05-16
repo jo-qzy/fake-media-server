@@ -11,19 +11,20 @@ class Event
 {
 public:
     explicit Event(IOLoop *loop, int fd = -1);
+    virtual ~Event();
 
     int get_fd();
     int get_events();
 
-    virtual int read_handler() = 0;
-    virtual int write_handler() = 0;
+    virtual int on_read() = 0;
+    virtual int on_write() = 0;
 
     void enable_read();
     void enable_write();
     void disable_read();
     void disable_write();
 
-private:
+protected:
     void add_event();
     void del_event();
 
