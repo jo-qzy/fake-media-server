@@ -112,12 +112,24 @@ void IOLoop::event_loop()
 
             if (events[i].events & (EPOLLIN | EPOLLHUP)) {
                 status = ev->on_read();
+                if (status == FMS_ERR || status == FMS_CLOSE) {
+                    DLOG(INFO) << "Delete event";
 
+                    delete ev;
+
+                    continue;
+                }
             }
 
             if (events[i].events & EPOLLOUT) {
+                status = ev->on_write();
+                if (status == FMS_ERR || status == FMS_CLOSE) {
+                    DLOG(INFO) << "Delete event";
 
+                    delete ev;
+                }
             }
+
         }
 
     }

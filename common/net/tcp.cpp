@@ -5,6 +5,8 @@
 #include "tcp.h"
 #include "adapter.h"
 #include "socket_util.h"
+#include "io_loop.h"
+#include <util/log.h>
 #include <util/define.h>
 
 TCPEvent::TCPEvent(IOLoop *loop, int fd, bool listen_mode)
@@ -15,6 +17,7 @@ TCPEvent::TCPEvent(IOLoop *loop, int fd, bool listen_mode)
 TCPEvent::~TCPEvent()
 {
     close_socket(fd);
+    io_loop->del_event(this);
 }
 
 int TCPEvent::on_read()
@@ -29,8 +32,6 @@ int TCPEvent::on_read()
 
             TCPEvent *tcp_event = new TCPEvent(io_loop, client_sock);
 
-
-
             tcp_event->enable_read();
             adapter->accept(tcp_event);
         }
@@ -40,8 +41,10 @@ int TCPEvent::on_read()
 
     int read_size = in_buffer.read_from_event(this, nullptr, nullptr);
 
-    if (read_size <= 0) {
-        return read_size;
+    if (read_size == 0) {
+        return FMS_CLOSE;
+    } else if (read_size == -1) {
+        return FMS_AGAIN;
     }
 
     return adapter->read_handler();
@@ -49,15 +52,31 @@ int TCPEvent::on_read()
 
 int TCPEvent::on_write()
 {
-    return out_buffer.write_to_event(this);
+    int status = out_buffer.write_to_event(this);
+
+    if (out_buffer.empty()) {
+        disable_write();
+    }
+
+    return status;
 }
 
 int TCPEvent::send_handler(const void *data, size_t size)
 {
-    return out_buffer.write_n(data, size);
+    int status = out_buffer.write_n(data, size);
+
+    if (status == FMS_ERR) {
+        LOG(ERROR) << "Adapter write to buffer error.";
+
+        return FMS_ERR;
+    }
+
+    enable_write();
+
+    return FMS_OK;
 }
 
-void TCPEvent::set_protocol_adapter(Adapter *adapter)
+void TCPEvent::set_protocol_adapter(Adapter *protocol_adapter)
 {
-    this->adapter = adapter;
+    adapter = protocol_adapter;
 }

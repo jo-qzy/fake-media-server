@@ -28,6 +28,7 @@ private:
     IOBuffer    in_buffer;
     IOBuffer    out_buffer;
     Adapter    *adapter;
+
 };
 
 

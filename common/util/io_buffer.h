@@ -24,6 +24,9 @@ public:
     int write_to_event(Event *ev);
     int write_n(const void *data, size_t size);
 
+    bool empty();
+    int size();
+
 private:
     int space_prepare(size_t size);
     void read_rewind(size_t size);

@@ -9,8 +9,15 @@
 enum Status {
     FMS_CLOSE       = -2,
     FMS_ERR         = -1,
-    FMS_OK          = 0,
-    FMS_MORE_DATA   = 1
+    FMS_OK          =  0,
+    FMS_AGAIN       =  1,
+    FMS_MORE_DATA   =  2
+};
+
+enum ConnectStatus {
+    FMS_DISCONNECTED = 1,
+    FMS_CONNECTING   = 0,
+    FMS_CONNECTED    = 1
 };
 
 

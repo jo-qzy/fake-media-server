@@ -69,7 +69,7 @@ int IOBuffer::write_to_event(Event *ev)
     ssize_t write_size;
 
     if (data_size == 0) {
-        return -1;
+        return 0;
     }
 
     write_size = write(ev->get_fd(), start, data_size);
@@ -92,6 +92,16 @@ int IOBuffer::write_n(const void *data, const size_t size)
     write_rewind(size);
 
     return (int) size;
+}
+
+bool IOBuffer::empty()
+{
+    return data_size == 0;
+}
+
+int IOBuffer::size()
+{
+    return (int) data_size;
 }
 
 int IOBuffer::space_prepare(size_t size)
