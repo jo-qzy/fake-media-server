@@ -4,7 +4,6 @@
 
 #include "event.h"
 #include "io_loop.h"
-#include <unistd.h>
 #include <sys/epoll.h>
 
 Event::Event(IOLoop *io_loop, int fd)

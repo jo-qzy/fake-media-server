@@ -5,6 +5,7 @@
 #include "tcp.h"
 #include "adapter.h"
 #include "socket_util.h"
+#include <util/define.h>
 
 TCPEvent::TCPEvent(IOLoop *loop, int fd, bool listen_mode)
     : Event(loop, fd), is_listener(listen_mode)
@@ -24,20 +25,17 @@ int TCPEvent::on_read()
         socklen_t   addr_len;
 
         client_sock = accept_connection(fd, &addr, &addr_len);
-        if (client_sock < 0) {
-            return -1;
+        if (client_sock > 0) {
+
+            TCPEvent *tcp_event = new TCPEvent(io_loop, client_sock);
+
+
+
+            tcp_event->enable_read();
+            adapter->accept(tcp_event);
         }
 
-        TCPEvent *tcp_event = new TCPEvent(io_loop, client_sock);
-        if (adapter->accept(tcp_event) != 0) {
-            delete tcp_event;
-
-            return -1;
-        }
-
-        tcp_event->enable_read();
-
-        return 1;
+        return FMS_OK;
     }
 
     int read_size = in_buffer.read_from_event(this, nullptr, nullptr);

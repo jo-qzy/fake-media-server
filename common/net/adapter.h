@@ -2,8 +2,8 @@
 // Created by BoringWednesday on 2021/5/16.
 //
 
-#ifndef FAKE_MEDIA_SERVER_PROTOCOL_PLUGIN_H
-#define FAKE_MEDIA_SERVER_PROTOCOL_PLUGIN_H
+#ifndef FAKE_MEDIA_SERVER_ADAPTER_H
+#define FAKE_MEDIA_SERVER_ADAPTER_H
 
 class Event;
 
@@ -23,4 +23,4 @@ protected:
 };
 
 
-#endif //FAKE_MEDIA_SERVER_PROTOCOLPLUG_H
+#endif //FAKE_MEDIA_SERVER_ADAPTER_H

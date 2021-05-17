@@ -5,6 +5,7 @@
 #include "io_loop.h"
 #include "event.h"
 #include <util/log.h>
+#include <util/define.h>
 #include <unistd.h>
 #include <sys/epoll.h>
 
@@ -13,7 +14,7 @@ bool IOLoop::interrupt = false;
 IOLoop::IOLoop(int max_connections, int interval)
     : poll_id(-1), poll_timeout(interval)
     , event_ptr(nullptr)
-    , event_num(max_connections)
+    , event_max_num(max_connections)
 {}
 
 IOLoop::~IOLoop()
@@ -29,7 +30,7 @@ int IOLoop::create()
         return -1;
     }
 
-    event_ptr = new epoll_event[event_num];
+    event_ptr = new epoll_event[event_max_num];
 
     return 0;
 }
@@ -92,15 +93,32 @@ int IOLoop::mod_event(Event *ev)
 
 void IOLoop::event_loop()
 {
-    int             ret = 0;
+    int             event_num = 0, i = 0, status = 0;
     epoll_event    *events = (epoll_event *) event_ptr;
+    Event          *ev;
 
     while (!interrupt) {
-        ret = epoll_wait(poll_id, events, event_num, 1000);
+        event_num = epoll_wait(poll_id, events, event_max_num, 1000);
 
-        if (ret <= 0) {
-            DLOG(INFO) << "IOLoop detected noting, ret: " << ret
+        if (event_num <= 0) {
+            DLOG(INFO) << "IOLoop detected noting, ret: " << event_num
                 << ", errno: " << errno;
+
+            continue;
         }
+
+        for (i = 0; i < event_num; i++) {
+            ev = (Event *) (events[i].data.ptr);
+
+            if (events[i].events & (EPOLLIN | EPOLLHUP)) {
+                status = ev->on_read();
+
+            }
+
+            if (events[i].events & EPOLLOUT) {
+
+            }
+        }
+
     }
 }

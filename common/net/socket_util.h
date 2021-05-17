@@ -7,9 +7,12 @@
 
 #include <sys/socket.h>
 
-int create_socket(int domain, int type, int protocol);
-int close_socket(int sock);
+int create_tcp_socket();
+int create_tcp_socket_nonblock();
 int accept_connection(int sock, struct sockaddr *addr, socklen_t *addr_len);
+int close_socket(int sock);
+
+int set_nonblock(int sock);
 
 
 #endif //FAKE_MEDIA_SERVER_SOCK_UTIL_H

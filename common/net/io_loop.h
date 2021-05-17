@@ -28,7 +28,7 @@ protected:
     int             poll_id;
     int             poll_timeout;
     void           *event_ptr;
-    int             event_num;
+    int             event_max_num;
 
     static bool     interrupt;
 };
