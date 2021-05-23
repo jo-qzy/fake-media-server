@@ -3,17 +3,9 @@
 //
 
 #include "adapter.h"
+#include "event.h"
+#include "util/define.h"
 
 Adapter::Adapter(Event *ev)
     : event(ev)
 {}
-
-int Adapter::connect()
-{
-    return 0;
-}
-
-int Adapter::accept(Event *ev)
-{
-    return 0;
-}

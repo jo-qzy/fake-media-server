@@ -17,6 +17,8 @@ private:
     explicit Worker(int max_events);
     virtual ~Worker();
 
+    virtual int initial_event() override;
+
     static void signal_handler(int signal);
 
 private:

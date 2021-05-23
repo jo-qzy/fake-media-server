@@ -3,6 +3,7 @@
 //
 
 #include "io_buffer.h"
+#include "util/log.h"
 #include <net/event.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,6 +33,8 @@ int IOBuffer::read_from_event(Event *ev, sockaddr *addr, socklen_t *addr_len)
     }
 
     read_size = recvfrom(ev->get_fd(), end, 1500, 0, addr, addr_len);
+    DLOG(INFO) << "Receive from fd: " << ev->get_fd() << " ,"
+        << read_size << " bytes.";
     if (read_size < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return -1;
@@ -42,7 +45,7 @@ int IOBuffer::read_from_event(Event *ev, sockaddr *addr, socklen_t *addr_len)
         return 0;
     }
 
-    read_rewind(read_size);
+    in_rewind(read_size);
 
     return (int) read_size;
 }
@@ -59,7 +62,7 @@ int IOBuffer::read_n(void *data, size_t size)
 
     memcpy(data, start, size);
 
-    read_rewind(size);
+    out_rewind(size);
 
     return (int) size;
 }
@@ -73,8 +76,10 @@ int IOBuffer::write_to_event(Event *ev)
     }
 
     write_size = write(ev->get_fd(), start, data_size);
+    DLOG(INFO) << "Send to fd: " << ev->get_fd() << " ,"
+               << write_size << " bytes.";
     if (write_size > 0) {
-        write_rewind(write_size);
+        out_rewind(write_size);
     }
 
     return (int) write_size;
@@ -82,16 +87,27 @@ int IOBuffer::write_to_event(Event *ev)
 
 int IOBuffer::write_n(const void *data, const size_t size)
 {
-    assert(data == nullptr);
+    assert(data != nullptr);
 
     if (space_prepare(size) != 0) {
         return -1;
     }
 
     memcpy(end, data, size);
-    write_rewind(size);
+
+    in_rewind(size);
 
     return (int) size;
+}
+
+uint8_t * IOBuffer::data()
+{
+    return start;
+}
+
+void IOBuffer::resize()
+{
+    rewind(size(), true);
 }
 
 bool IOBuffer::empty()
@@ -144,19 +160,19 @@ int IOBuffer::space_prepare(size_t size)
     return 0;
 }
 
-void IOBuffer::read_rewind(size_t size)
+void IOBuffer::in_rewind(size_t size)
 {
     rewind(size, true);
 }
 
-void IOBuffer::write_rewind(size_t size)
+void IOBuffer::out_rewind(size_t size)
 {
     rewind(size, false);
 }
 
-void IOBuffer::rewind(size_t size, bool is_read)
+void IOBuffer::rewind(size_t size, bool in)
 {
-    if (is_read) {
+    if (in) {
         end += size;
         data_size += size;
 
@@ -170,6 +186,6 @@ void IOBuffer::rewind(size_t size, bool is_read)
             start += size;
         }
 
-        assert(start > end);
+        assert(start <= end);
     }
 }

@@ -4,6 +4,7 @@
 
 #include "io_loop.h"
 #include "event.h"
+#include <assert.h>
 #include <util/log.h>
 #include <util/define.h>
 #include <unistd.h>
@@ -32,6 +33,13 @@ int IOLoop::create()
 
     event_ptr = new epoll_event[event_max_num];
 
+    initial_event();
+
+    return 0;
+}
+
+int IOLoop::initial_event()
+{
     return 0;
 }
 
@@ -52,6 +60,9 @@ int IOLoop::add_event(Event *ev)
     event.events = ev->get_events();
     event.data.ptr = (void *) ev;
 
+    DLOG(INFO) << "IOLoop add fd: " << ev->get_fd()
+        << ", event: " << ev->get_events();
+
     if (epoll_ctl(poll_id, EPOLL_CTL_ADD, ev->get_fd(), &event) < 0) {
         LOG(ERROR) << "IOLoop add event failed, fd: " << ev->get_fd()
             << ", errno: " << errno;
@@ -64,6 +75,8 @@ int IOLoop::add_event(Event *ev)
 
 int IOLoop::del_event(Event *ev)
 {
+    DLOG(INFO) << "IOLoop delete fd: " << ev->get_fd();
+
     if (epoll_ctl(poll_id, EPOLL_CTL_DEL, ev->get_fd(), nullptr) < 0) {
         LOG(ERROR) << "IOLoop delete event failed, fd: " << ev->get_fd()
                    << ", errno: " << errno;
@@ -80,6 +93,9 @@ int IOLoop::mod_event(Event *ev)
 
     event.events = ev->get_events();
     event.data.ptr = (void *) ev;
+
+    DLOG(INFO) << "IOLoop modify fd: " << ev->get_fd()
+               << ", event: " << ev->get_events();
 
     if (epoll_ctl(poll_id, EPOLL_CTL_MOD, ev->get_fd(), &event) < 0) {
         LOG(ERROR) << "IOLoop modify event failed, fd: " << ev->get_fd()
@@ -101,8 +117,8 @@ void IOLoop::event_loop()
         event_num = epoll_wait(poll_id, events, event_max_num, 1000);
 
         if (event_num <= 0) {
-            DLOG(INFO) << "IOLoop detected noting, ret: " << event_num
-                << ", errno: " << errno;
+            //DLOG(INFO) << "IOLoop detected noting, ret: " << event_num
+            //    << ", errno: " << errno;
 
             continue;
         }
@@ -110,7 +126,12 @@ void IOLoop::event_loop()
         for (i = 0; i < event_num; i++) {
             ev = (Event *) (events[i].data.ptr);
 
+            assert(ev != nullptr);
+
             if (events[i].events & (EPOLLIN | EPOLLHUP)) {
+                DLOG(INFO) << "Event fd: " << ev->get_fd()
+                    << " trigger read event " << events[i].events;
+
                 status = ev->on_read();
                 if (status == FMS_ERR || status == FMS_CLOSE) {
                     DLOG(INFO) << "Delete event";
@@ -122,6 +143,9 @@ void IOLoop::event_loop()
             }
 
             if (events[i].events & EPOLLOUT) {
+                DLOG(INFO) << "Event fd: " << ev->get_fd()
+                           << " trigger write event.";
+
                 status = ev->on_write();
                 if (status == FMS_ERR || status == FMS_CLOSE) {
                     DLOG(INFO) << "Delete event";

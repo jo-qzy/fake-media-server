@@ -2,26 +2,11 @@
 // Created by BoringWednesday on 2021/5/18.
 //
 
+#include "echo_test.h"
 #include <echo_client.h>
 #include <echo_server.h>
 #include <stdio.h>
-#include <sys/socket.h>
 #include <unistd.h>
-
-int echo_send(void *param, const void *packet, size_t bytes)
-{
-    int sock = *(int *) param;
-
-    return (int) send(sock, packet, bytes, 0);
-}
-
-int echo_onpacket(void *param, const void *data, size_t bytes, uint32_t sequence)
-{
-    printf("receive message:\n");
-    printf("sequence: %d message: %s\n", sequence, (const char *) data);
-
-    return 0;
-}
 
 int echo_server_test(int sock)
 {

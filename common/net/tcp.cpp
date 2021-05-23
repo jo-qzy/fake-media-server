@@ -18,6 +18,8 @@ TCPEvent::~TCPEvent()
 {
     close_socket(fd);
     io_loop->del_event(this);
+
+    delete adapter;
 }
 
 int TCPEvent::on_read()
@@ -47,7 +49,7 @@ int TCPEvent::on_read()
         return FMS_AGAIN;
     }
 
-    return adapter->read_handler();
+    return adapter->read_handler(&in_buffer);
 }
 
 int TCPEvent::on_write()

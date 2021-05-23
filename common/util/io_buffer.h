@@ -24,14 +24,17 @@ public:
     int write_to_event(Event *ev);
     int write_n(const void *data, size_t size);
 
+    uint8_t * data();
+    void resize();
+
     bool empty();
     int size();
 
 private:
     int space_prepare(size_t size);
-    void read_rewind(size_t size);
-    void write_rewind(size_t size);
-    void rewind(size_t size, bool is_read);
+    void in_rewind(size_t size);
+    void out_rewind(size_t size);
+    void rewind(size_t size, bool in);
 
 private:
     uint8_t    *buffer;

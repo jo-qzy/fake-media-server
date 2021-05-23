@@ -14,6 +14,7 @@ public:
     virtual ~IOLoop();
 
     int create();
+    virtual int initial_event();
     void run();
     static void stop();
 

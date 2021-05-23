@@ -4,6 +4,9 @@
 
 #include "core.h"
 #include "worker.h"
+#include "adapter/echo.h"
+#include "net/socket_util.h"
+#include "net/tcp.h"
 #include "util/process.h"
 #include <signal.h>
 
@@ -48,6 +51,26 @@ Worker::Worker(int max_events)
 
 Worker::~Worker()
 {}
+
+int Worker::initial_event()
+{
+    // TODO: base on setting to create event
+    TCPEvent *tcp_ev;
+    EchoAdapter *echo;
+
+    int sock = create_tcp_socket_nonblock();
+    if (bind_and_listen(sock, "0.0.0.0", 8888, 1024) != 0) {
+        return -1;
+    }
+
+    tcp_ev = new TCPEvent(this, sock, true);
+    echo = new EchoAdapter(tcp_ev);
+
+    tcp_ev->set_protocol_adapter(echo);
+    tcp_ev->enable_read();
+
+    return 0;
+}
 
 void Worker::signal_handler(int signal)
 {

@@ -5,6 +5,8 @@
 #include "socket_util.h"
 #include <unistd.h>
 #include <fcntl.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 
 int create_tcp_socket()
 {
@@ -21,6 +23,25 @@ int create_tcp_socket_nonblock()
 #endif
 
     return sock;
+}
+
+int bind_and_listen(int sock, const char *addr, int port, int backlog)
+{
+    sockaddr_in address;
+
+    address.sin_family = AF_INET;
+    address.sin_port = htons(port);
+    address.sin_addr.s_addr = inet_addr(addr);
+
+    if (bind(sock, (sockaddr *) &address, sizeof address) != 0) {
+        return -1;
+    }
+
+    if (listen(sock, backlog) != 0) {
+        return -1;
+    }
+
+    return 0;
 }
 
 int accept_connection(int sock, struct sockaddr *addr, socklen_t *addr_len)

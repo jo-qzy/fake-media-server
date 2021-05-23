@@ -74,7 +74,7 @@ void Event::add_event()
 
     int status = -1;
 
-    if (is_add) {
+    if (!is_add) {
         status = io_loop->add_event(this);
     } else {
         status = io_loop->mod_event(this);

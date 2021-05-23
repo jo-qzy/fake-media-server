@@ -9,9 +9,9 @@ Just a small project use for learning media server.
 
 # Feature
 
-None of the following features are supported, to be done...
+Most of the following features are supported, to be done...
 
-- [ ] An event-driven server
+- [x] An event-driven server
 - [ ] Support echo protocol
 - [ ] Media remux (like RTMP Publish, WebRTC pull)
 - [ ] Clustering support
