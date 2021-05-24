@@ -9,10 +9,10 @@ Just a small project use for learning media server.
 
 # Feature
 
-Most of the following features are supported, to be done...
+Most of the features listed below are not supported, to be done...
 
 - [x] An event-driven server
-- [ ] Support echo protocol
+- [x] Support echo protocol
 - [ ] Media remux (like RTMP Publish, WebRTC pull)
 - [ ] Clustering support
 - [ ] Publish media by RTMP
@@ -26,11 +26,15 @@ Most of the following features are supported, to be done...
 # How To Build
 
 ```shell
-mkdir build
-cd build
-cmake ..
-make -j
-make install
+# Release version
+cmake -B build -DCMAKE_BUILD_TYPE="Release"
+cmake --build build --config "Release"
+cmake -P build/cmake_install.cmake
+
+# Debug version
+cmake -B build -DCMAKE_BUILD_TYPE="Debug"
+cmake --build build --config "Debug"
+cmake -P build/cmake_install.cmake
 ```
 
 # Enjoy It
