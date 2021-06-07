@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include "rtmp.h"
 
+#define RTMP_CHUNK_HEADER_MAX_LEN 18
+
 enum rtmp_chunk_type_t
 {
     RTMP_CHUNK_TYPE_0 = 0,  //
@@ -45,7 +47,6 @@ enum rtmp_chunk_type_t
 
 struct rtmp_chunk_header_t
 {
-
     uint8_t     format;             // RTMP_CHUNK_TYPE_X
     uint32_t    chunk_stream_id;    // chunk stream ID (6-bits or 22-bits)
     uint32_t    timestamp;          // timestamp (24-bits)

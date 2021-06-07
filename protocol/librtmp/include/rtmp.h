@@ -1,9 +1,9 @@
 //
-// Created by BoringWednesday on 2021/5/12.
+// Created by BoringWednesday on 2021/5/26.
 //
 
-#ifndef FAKE_MEDIA_SERVER_RTMP_H
-#define FAKE_MEDIA_SERVER_RTMP_H
+#ifndef LIBRTMP_RTMP_H
+#define LIBRTMP_RTMP_H
 
 #if defined(__cplusplus)
 extern "C" {
@@ -15,4 +15,4 @@ struct rtmp_t;
 }
 #endif
 
-#endif //FAKE_MEDIA_SERVER_RTMP_H
+#endif //LIBRTMP_RTMP_H
