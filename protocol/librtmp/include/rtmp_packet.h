@@ -7,7 +7,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "rtmp.h"
 
 #define RTMP_MAX_CHUNK_STREAM       8
 
@@ -61,7 +60,5 @@ struct rtmp_packet_t
     size_t      capacity;
 };
 
-
-int rtmp_chunk_read(struct rtmp_t *rtmp, const uint8_t *data, size_t bytes);
 
 #endif //LIBRTMP_PACKET_H
