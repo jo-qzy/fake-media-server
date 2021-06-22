@@ -48,7 +48,7 @@
  * C -> S: Video
  */
 
-struct rtmp_t *rtmp_create(void *param, const struct rtmp_handler_t *handler)
+struct rtmp_t *rtmp_create(void *param, int is_client, const struct rtmp_handler_t *handler)
 {
     struct rtmp_t *ctx;
 
@@ -59,6 +59,9 @@ struct rtmp_t *rtmp_create(void *param, const struct rtmp_handler_t *handler)
 
     ctx->param = param;
 
+    ctx->is_client = is_client;
+    ctx->status = RTMP_STATUS_UNINITIALIZED;
+    ctx->handshake_status = RTMP_HANDSHAKE_UNINITIALIZED;
     ctx->in_chunk_size = RTMP_CHUNK_SIZE;
     ctx->out_chunk_size = RTMP_CHUNK_SIZE;
 
@@ -94,8 +97,17 @@ int rtmp_input(struct rtmp_t *rtmp, const void *data, size_t bytes)
     while (bytes > 0) {
         switch (rtmp->handshake_status) {
             case RTMP_HANDSHAKE_UNINITIALIZED:
+                rtmp->handshake_status = RTMP_HANDSHAKE_0;
+                rtmp->payload_bytes = 0;
 
                 bytes -= 1;
+                ptr++;
+
+                break;
+
+            case RTMP_HANDSHAKE_0:
+                if (rtmp->payload_bytes < RTMP_HANDSHAKE_1_LENGTH)
+
                 break;
 
             default:
@@ -103,6 +115,7 @@ int rtmp_input(struct rtmp_t *rtmp, const void *data, size_t bytes)
         }
     }
 
+    // Need more data
     return 0;
 }
 
@@ -112,6 +125,10 @@ int rtmp_connect(struct rtmp_t *rtmp)
 
     if (rtmp->status > RTMP_STATUS_HANDSHAKE) {
         return -1;
+    }
+
+    if (!rtmp->is_client) {
+        return 0;
     }
 
     handshake_size = rtmp_handshake_c0(rtmp->payload, RTMP_VERSION);

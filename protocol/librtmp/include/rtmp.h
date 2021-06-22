@@ -32,6 +32,7 @@ struct rtmp_t
 {
     void       *param;
 
+    int         is_client;
     int         status;
     int         handshake_status;
 
@@ -39,6 +40,7 @@ struct rtmp_t
     int         out_chunk_size;
 
     uint8_t     payload[2 * 1024];
+    size_t      payload_bytes;
 
     struct rtmp_packet_t in_packets[RTMP_MAX_CHUNK_STREAM];
     struct rtmp_packet_t out_packets[RTMP_MAX_CHUNK_STREAM];
@@ -48,7 +50,7 @@ struct rtmp_t
 };
 
 
-struct rtmp_t *rtmp_create(void *param, const struct rtmp_handler_t *handler);
+struct rtmp_t *rtmp_create(void *param, int is_client, const struct rtmp_handler_t *handler);
 
 void rtmp_destroy(struct rtmp_t *rtmp);
 
