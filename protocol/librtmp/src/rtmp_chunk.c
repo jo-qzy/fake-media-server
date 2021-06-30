@@ -49,6 +49,8 @@
  *
  */
 
+const uint32_t rtmp_chunk_header_length[] = { 12, 8, 4, 1 };
+
 
 int rtmp_chunk_read(struct rtmp_t *rtmp, const uint8_t *data, size_t bytes)
 {

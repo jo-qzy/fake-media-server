@@ -2,12 +2,14 @@
 // Created by BoringWednesday on 2021/6/7.
 //
 
+#include "rtmp.h"
 #include "rtmp_handshake.h"
 #include "rtmp_util.h"
 
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 /*
  * ------------- RTMP Handshake -------------
@@ -43,7 +45,7 @@ static void rtmp_handshake_random(uint8_t *ptr, uint32_t timestamp)
     srand(timestamp);
 
     /* Generate random 1528 bytes */
-    for (i = 0; i * 4 < RTMP_HANDSHAKE_1_LENGTH - 8; i++) {
+    for (i = 0; i * 4 < RTMP_HANDSHAKE_LENGTH - 8; i++) {
         *((int *) ptr + i) = rand();
     }
 }
@@ -59,7 +61,7 @@ int rtmp_handshake_c0(uint8_t *c0, int version)
     /* version: 1 byte (0x03 RTMP) */
     *c0 = (uint8_t) version;
 
-    return RTMP_HANDSHAKE_0_LENGTH;
+    return 1;
 }
 
 int rtmp_handshake_c1(uint8_t *c1, uint32_t timestamp)
@@ -77,12 +79,12 @@ int rtmp_handshake_c1(uint8_t *c1, uint32_t timestamp)
     /* random bytes: 1528 bytes */
     rtmp_handshake_random(c1 + 8, timestamp);
 
-    return RTMP_HANDSHAKE_1_LENGTH;
+    return RTMP_HANDSHAKE_LENGTH;
 }
 
 int rtmp_handshake_c2(uint8_t *c2, uint32_t timestamp, const uint8_t *s1, size_t s1_bytes)
 {
-    if (c2 == NULL || s1_bytes != RTMP_HANDSHAKE_1_LENGTH) {
+    if (c2 == NULL || s1_bytes != RTMP_HANDSHAKE_LENGTH) {
         return -1;
     }
 
@@ -90,7 +92,7 @@ int rtmp_handshake_c2(uint8_t *c2, uint32_t timestamp, const uint8_t *s1, size_t
 
     rtmp_write_uint32_be(c2 + 4, timestamp);
 
-    return RTMP_HANDSHAKE_2_LENGTH;
+    return RTMP_HANDSHAKE_LENGTH;
 }
 
 int rtmp_handshake_s0(uint8_t *s0, int version)
@@ -103,7 +105,7 @@ int rtmp_handshake_s0(uint8_t *s0, int version)
 
     *s0 = (uint8_t) version;
 
-    return RTMP_HANDSHAKE_0_LENGTH;
+    return 1;
 }
 
 int rtmp_handshake_s1(uint8_t *s1, uint32_t timestamp)
@@ -121,12 +123,12 @@ int rtmp_handshake_s1(uint8_t *s1, uint32_t timestamp)
     /* random bytes: 1528 bytes */
     rtmp_handshake_random(s1 + 8, timestamp);
 
-    return RTMP_HANDSHAKE_1_LENGTH;
+    return RTMP_HANDSHAKE_LENGTH;
 }
 
 int rtmp_handshake_s2(uint8_t *s2, uint32_t timestamp, const uint8_t *c1, size_t c1_bytes)
 {
-    if (s2 == NULL || c1_bytes != RTMP_HANDSHAKE_1_LENGTH) {
+    if (s2 == NULL || c1_bytes != RTMP_HANDSHAKE_LENGTH) {
         return -1;
     }
 
@@ -134,5 +136,48 @@ int rtmp_handshake_s2(uint8_t *s2, uint32_t timestamp, const uint8_t *c1, size_t
 
     rtmp_write_uint32_be(s2 + 4, timestamp);
 
-    return RTMP_HANDSHAKE_2_LENGTH;
+    return RTMP_HANDSHAKE_LENGTH;
+}
+
+int rtmp_send_handshake_c0_c1(struct rtmp_t *rtmp)
+{
+    size_t send_bytes;
+
+    if (!rtmp) {
+        return -1;
+    }
+
+    send_bytes = rtmp_handshake_c0(rtmp->payload, RTMP_VERSION);
+    send_bytes += rtmp_handshake_c1(rtmp->payload + 1, (uint32_t) time(NULL));
+
+    return send_bytes == rtmp->on_send(rtmp->param, rtmp->payload, send_bytes, NULL, 0) ? 0 : -1;
+}
+
+int rtmp_send_handshake_c2(struct rtmp_t *rtmp)
+{
+    size_t send_bytes;
+
+    if (!rtmp || rtmp->payload_bytes != RTMP_HANDSHAKE_LENGTH) {
+        return -1;
+    }
+
+    send_bytes = rtmp_handshake_c2(rtmp->payload, (uint32_t) time(NULL), rtmp->payload, RTMP_HANDSHAKE_LENGTH);
+
+    return send_bytes == rtmp->on_send(rtmp->param, rtmp->payload, send_bytes, NULL, 0) ? 0 : -1;
+}
+
+int rtmp_send_handshake_s0_s1_s2(struct rtmp_t *rtmp)
+{
+    size_t send_bytes;
+
+    if (!rtmp || rtmp->payload_bytes != RTMP_HANDSHAKE_LENGTH) {
+        return -1;
+    }
+
+    send_bytes = rtmp_handshake_s0(rtmp->payload, RTMP_VERSION);
+    send_bytes += rtmp_handshake_s1(rtmp->payload + 1, (uint32_t) time(NULL));
+    send_bytes += rtmp_handshake_s2(rtmp->payload + send_bytes, (uint32_t) time(NULL),
+                                    rtmp->handshake, RTMP_HANDSHAKE_LENGTH);
+
+    return send_bytes == rtmp->on_send(rtmp->param, rtmp->payload, send_bytes, NULL, 0) ? 0 : -1;
 }

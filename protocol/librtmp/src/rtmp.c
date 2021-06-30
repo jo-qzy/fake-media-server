@@ -7,6 +7,7 @@
 #include "rtmp_handshake.h"
 
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 /*
@@ -84,13 +85,16 @@ int rtmp_get_status(struct rtmp_t *rtmp)
     return rtmp->status;
 }
 
-int rtmp_input(struct rtmp_t *rtmp, const void *data, size_t bytes)
+static int rtmp_send_connect(struct rtmp_t *rtmp)
 {
-    const uint8_t *ptr;
+    return 0;
+}
 
-    if (data == NULL || bytes == 0) {
-        return -1;
-    }
+static int rtmp_process_handshake(struct rtmp_t *rtmp, const void *data, size_t bytes)
+{
+    size_t          read_bytes, send_bytes;
+    int             ret;
+    const uint8_t  *ptr;
 
     ptr = data;
 
@@ -98,7 +102,8 @@ int rtmp_input(struct rtmp_t *rtmp, const void *data, size_t bytes)
         switch (rtmp->handshake_status) {
             case RTMP_HANDSHAKE_UNINITIALIZED:
                 rtmp->handshake_status = RTMP_HANDSHAKE_0;
-                rtmp->payload_bytes = 0;
+                rtmp->handshake[0] = *ptr;
+                rtmp->handshake_bytes = 1;
 
                 bytes -= 1;
                 ptr++;
@@ -106,11 +111,64 @@ int rtmp_input(struct rtmp_t *rtmp, const void *data, size_t bytes)
                 break;
 
             case RTMP_HANDSHAKE_0:
-                if (rtmp->payload_bytes < RTMP_HANDSHAKE_1_LENGTH)
+                read_bytes = RTMP_HANDSHAKE_LENGTH - rtmp->handshake_bytes;
+                read_bytes = read_bytes <= bytes ? read_bytes : bytes;
+
+                memmove(rtmp->handshake + rtmp->handshake_bytes, ptr, bytes);
+                rtmp->handshake_bytes += read_bytes;
+                bytes -= read_bytes;
+                ptr += read_bytes;
+
+                if (rtmp->payload_bytes == RTMP_HANDSHAKE_LENGTH) {
+                    rtmp->handshake_status = RTMP_HANDSHAKE_1;
+
+                    if (rtmp->is_client) {
+                        // Client receive S0 + S1, need return C2
+                        ret = rtmp_send_handshake_c2(rtmp);
+                        if (ret != 0) {
+                            return ret;
+                        }
+
+                    } else {
+                        // Server receive C0 + C1, need return S0 + S1 + s2
+                        ret = rtmp_send_handshake_s0_s1_s2(rtmp);
+                        if (ret != 0) {
+                            return ret;
+                        }
+
+                    }
+                }
 
                 break;
 
+            case RTMP_HANDSHAKE_1:
+                read_bytes = 1 + RTMP_HANDSHAKE_LENGTH * 2 - rtmp->handshake_bytes;
+                read_bytes = read_bytes <= bytes ? read_bytes : bytes;
+
+                memmove(rtmp->handshake + rtmp->handshake_bytes, ptr, bytes);
+                rtmp->handshake_bytes += read_bytes;
+                bytes -= read_bytes;
+                ptr += read_bytes;
+
+                if (rtmp->handshake_bytes == 1 + RTMP_HANDSHAKE_LENGTH * 2) {
+                    rtmp->handshake_status = RTMP_HANDSHAKE_2;
+                    rtmp->status = RTMP_STATUS_HANDSHAKE;
+                    rtmp->handshake_bytes = 0;
+
+                    if (rtmp->is_client) {
+                        ret = rtmp_send_connect(rtmp);
+                        if (ret != 0) {
+                            return ret;
+                        }
+
+                    }
+                }
+
+                break;
+
+            case RTMP_HANDSHAKE_2:
             default:
+                // After finish handshake still remain some bytes
                 return rtmp_chunk_read(rtmp, data, bytes);
         }
     }
@@ -119,9 +177,22 @@ int rtmp_input(struct rtmp_t *rtmp, const void *data, size_t bytes)
     return 0;
 }
 
+int rtmp_input(struct rtmp_t *rtmp, const void *data, size_t bytes)
+{
+    if (data == NULL || bytes == 0) {
+        return -1;
+    }
+
+    if (rtmp->status == RTMP_STATUS_HANDSHAKE) {
+        return rtmp_process_handshake(rtmp, data, bytes);
+    }
+
+    return rtmp_chunk_read(rtmp, data, bytes);
+}
+
 int rtmp_connect(struct rtmp_t *rtmp)
 {
-    int handshake_size;
+    int send_bytes;
 
     if (rtmp->status > RTMP_STATUS_HANDSHAKE) {
         return -1;
@@ -131,10 +202,5 @@ int rtmp_connect(struct rtmp_t *rtmp)
         return 0;
     }
 
-    handshake_size = rtmp_handshake_c0(rtmp->payload, RTMP_VERSION);
-    handshake_size += rtmp_handshake_c1(rtmp->payload + 1, (uint32_t) time(NULL));
-
-    return handshake_size == rtmp->on_send(rtmp->param, rtmp->payload, handshake_size, NULL, 0) ? 0 : -1;
+    return rtmp_send_handshake_c0_c1(rtmp);
 }
-
-

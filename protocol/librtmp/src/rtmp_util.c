@@ -18,7 +18,7 @@ inline void rtmp_write_uint24_be(uint8_t *ptr, uint32_t val)
     ptr[2] = (uint8_t) (val & 0xFF);
 }
 
-inline void rtmp_write_uint32_be(uint8_t *ptr, uint32_t val)
+void rtmp_write_uint32_be(uint8_t *ptr, uint32_t val)
 {
     ptr[0] = (uint8_t) ((val >> 24) &0xFF);
     ptr[1] = (uint8_t) ((val >> 16) &0xFF);

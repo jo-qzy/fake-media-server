@@ -21,7 +21,7 @@ enum rtmp_chunk_type_t
     RTMP_CHUNK_TYPE_3 = 3,
 };
 
-const uint32_t rtmp_chunk_header_length[] = { 12, 8, 4, 1 };
+const uint32_t rtmp_chunk_header_length[4];
 
 struct rtmp_chunk_header_t
 {
