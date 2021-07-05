@@ -157,7 +157,7 @@ int rtmp_send_handshake_c2(struct rtmp_t *rtmp)
 {
     size_t send_bytes;
 
-    if (!rtmp || rtmp->payload_bytes != RTMP_HANDSHAKE_LENGTH) {
+    if (!rtmp || rtmp->handshake_bytes != 1 + RTMP_HANDSHAKE_LENGTH) {
         return -1;
     }
 

@@ -111,7 +111,7 @@ static int rtmp_process_handshake(struct rtmp_t *rtmp, const void *data, size_t 
                 break;
 
             case RTMP_HANDSHAKE_0:
-                read_bytes = RTMP_HANDSHAKE_LENGTH - rtmp->handshake_bytes;
+                read_bytes = 1 + RTMP_HANDSHAKE_LENGTH - rtmp->handshake_bytes;
                 read_bytes = read_bytes <= bytes ? read_bytes : bytes;
 
                 memmove(rtmp->handshake + rtmp->handshake_bytes, ptr, bytes);
@@ -119,7 +119,7 @@ static int rtmp_process_handshake(struct rtmp_t *rtmp, const void *data, size_t 
                 bytes -= read_bytes;
                 ptr += read_bytes;
 
-                if (rtmp->payload_bytes == RTMP_HANDSHAKE_LENGTH) {
+                if (rtmp->handshake_bytes == 1 + RTMP_HANDSHAKE_LENGTH) {
                     rtmp->handshake_status = RTMP_HANDSHAKE_1;
 
                     if (rtmp->is_client) {
@@ -183,7 +183,7 @@ int rtmp_input(struct rtmp_t *rtmp, const void *data, size_t bytes)
         return -1;
     }
 
-    if (rtmp->status == RTMP_STATUS_HANDSHAKE) {
+    if (rtmp->status == RTMP_STATUS_UNINITIALIZED) {
         return rtmp_process_handshake(rtmp, data, bytes);
     }
 

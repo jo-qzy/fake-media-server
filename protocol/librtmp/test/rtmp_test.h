@@ -8,6 +8,12 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <stdint.h>
+#include <string.h>
+#include <rtmp.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
+#include <errno.h>
 
 int rtmp_send(void *param, const uint8_t *header, uint32_t header_bytes, const uint8_t *payload, uint32_t payload_bytes)
 {
@@ -15,15 +21,14 @@ int rtmp_send(void *param, const uint8_t *header, uint32_t header_bytes, const u
     struct msghdr msg_handler;
     struct iovec message[2];
 
-    msg_handler.msg_name = NULL;
-    msg_handler.msg_namelen = 0;
+    memset(&msg_handler, 0, sizeof(msg_handler));
     msg_handler.msg_iov = message;
     msg_handler.msg_iovlen = 2;
+
     message[0].iov_base = (void *) header;
     message[0].iov_len = header_bytes;
     message[1].iov_base = (void *) payload;
     message[1].iov_len = payload_bytes;
-
 
     return (int) sendmsg(sock, &msg_handler, 0);
 }

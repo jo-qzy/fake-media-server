@@ -3,10 +3,6 @@
 //
 
 #include "rtmp_test.h"
-#include <rtmp.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
 
 
 int main(int argc, char *argv[])
@@ -14,7 +10,8 @@ int main(int argc, char *argv[])
     struct rtmp_t *rtmp;
     struct rtmp_handler_t handler;
     struct sockaddr_in address;
-    int sock;
+    int sock, recv_bytes, ret;
+    uint8_t buffer[2 * 1024 * 1024];
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
@@ -38,6 +35,38 @@ int main(int argc, char *argv[])
     }
 
     rtmp_connect(rtmp);
+
+    while (1) {
+        recv_bytes = (int) recv(sock, buffer, 2 * 1024 * 1024, 0);
+        if (recv_bytes <= 0) {
+            if (recv_bytes == 0) {
+                printf("connection broken\n");
+
+                break;
+            } else if (errno != EAGAIN) {
+                printf("recv occur error, errno: %d\n", errno);
+
+                break;
+            }
+        }
+
+        printf("recv bytes: %d\n", recv_bytes);
+
+        ret = rtmp_input(rtmp, buffer, recv_bytes);
+        if (ret < 0) {
+            printf("rtmp_input return wrong value: %d\n", recv_bytes);
+
+            break;
+        }
+
+        if (rtmp_get_status(rtmp) == RTMP_STATUS_HANDSHAKE) {
+            printf("handshake success\n");
+
+            break;
+        }
+    }
+
+    rtmp_destroy(rtmp);
 
     return 0;
 }

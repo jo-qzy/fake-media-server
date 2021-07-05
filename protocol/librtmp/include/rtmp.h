@@ -12,6 +12,9 @@ extern "C" {
 #include "rtmp_packet.h"
 #include "rtmp_handshake.h"
 
+#include <stdio.h>
+#include <unistd.h>
+
 
 typedef enum rtmp_status_t
 {
