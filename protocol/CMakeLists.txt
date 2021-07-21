@@ -4,3 +4,4 @@ PROJECT(MediaLib)
 
 ADD_SUBDIRECTORY(libecho)
 ADD_SUBDIRECTORY(librtmp)
+ADD_SUBDIRECTORY(libamf)

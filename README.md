@@ -43,3 +43,6 @@ cmake -P build/cmake_install.cmake
 ./bin/fake_media_server -c conf/fake.conf
 ```
 
+# In Addition
+
+I borrowed a lot of GitHub user [ireader](https://github.com/ireader/media-server) 's code in my code, thanks a lot for open-source the excellent code.
