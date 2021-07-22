@@ -2,59 +2,82 @@
 // Created by BoringWednesday on 2021/7/7.
 //
 
-#include "amf0.h"
-
 #include <assert.h>
 #include <string.h>
 
-static uint8_t *amf0_write_int16(uint8_t *ptr, const uint8_t *end, uint16_t value)
+#include "amf0.h"
+#include "amf_util.h"
+
+/*
+ * AMF Format:
+ *      AMF_TYPE: 1 byte
+ *      DATA_LENGTH: 0/2/4 bytes
+ *      DATA: N bytes
+ */
+
+uint8_t *amf0_write_number(uint8_t *ptr, const uint8_t *end, double value)
 {
-    if (ptr + 2 > end) {
+    uint8_t *double_ptr;
+
+    if (!ptr || ptr + 9 > end) {
         return NULL;
     }
 
-    ptr[0] = value >> 8;
-    ptr[1] = value & 0xFF;
+    double_ptr = (uint8_t *) &value;
 
-    return ptr + 2;
+    *ptr++ = AMF0_NUMBER;
+
+    *ptr++ = double_ptr[7];
+    *ptr++ = double_ptr[6];
+    *ptr++ = double_ptr[5];
+    *ptr++ = double_ptr[4];
+    *ptr++ = double_ptr[3];
+    *ptr++ = double_ptr[2];
+    *ptr++ = double_ptr[1];
+    *ptr++ = double_ptr[0];
+
+    return ptr;
 }
 
-static uint8_t *amf0_write_int32(uint8_t *ptr, const uint8_t *end, uint32_t value)
+uint8_t *amf0_write_boolean(uint8_t *ptr, const uint8_t *end, uint8_t value)
 {
-    if (ptr + 4 > end) {
+    if (!ptr || ptr + 2 > end) {
         return NULL;
     }
 
-    ptr[0] = (uint8_t) (value >> 24);
-    ptr[1] = (uint8_t) (value >> 16);
-    ptr[2] = (uint8_t) (value >> 8);
-    ptr[3] = (uint8_t) (value & 0xFF);
+    *ptr++ = AMF0_BOOLEAN;
+    *ptr++ = value == 0 ? 0 : 1;
 
-    return ptr + 4;
+    return ptr;
 }
 
-static uint8_t *amf0_write_string16(uint8_t *ptr, const uint8_t *end, const char *str, size_t length)
+uint8_t *amf0_write_string(uint8_t *ptr, const uint8_t *end, const char *string, size_t length)
 {
-    if (ptr + 2 + length > end) {
+    if (!ptr || length > UINT16_MAX || ptr + 1 + 2 + length > end) {
         return NULL;
     }
 
-    ptr = amf0_write_int16(ptr, end, (uint16_t) length);
-    memcpy(ptr, str, length);
+    *ptr++ = AMF0_STRING;
 
-    return ptr + length;
+    return amf0_write_string16(ptr, end, string, length);
 }
 
-static uint8_t *amf0_write_string32(uint8_t *ptr, const uint8_t *end, const char *str, size_t length)
+uint8_t *amf0_write_object(uint8_t *ptr, const uint8_t *end)
 {
-    if (ptr + 4 + length > end) {
+    if (!ptr || ptr + 1 > end) {
         return NULL;
     }
 
-    ptr = amf0_write_int32(ptr, end, (uint16_t) length);
-    memcpy(ptr, str, length);
+    *ptr++ = AMF0_OBJECT;
 
-    return ptr + length;
+    return ptr;
+}
+
+uint8_t *amf0_write_movieclip(uint8_t *ptr, const uint8_t *end)
+{
+    // Nonsupport AMF type
+
+    return ptr;
 }
 
 uint8_t *amf0_write_null(uint8_t *ptr, const uint8_t *end)
@@ -79,15 +102,27 @@ uint8_t *amf0_write_undefined(uint8_t *ptr, const uint8_t *end)
     return ptr;
 }
 
-uint8_t *amf0_write_object(uint8_t *ptr, const uint8_t *end)
+uint8_t *amf0_write_reference(uint8_t *ptr, const uint8_t *end, uint16_t reference)
+{
+    if (!ptr || ptr + 3 > end) {
+        return NULL;
+    }
+
+    *ptr++ = AMF0_REFERENCE;
+
+    return amf0_write_int16(ptr, end, reference);
+}
+
+uint8_t *amf0_write_ecma_array(uint8_t* ptr, const uint8_t* end, uint32_t array_length)
 {
     if (!ptr || ptr + 1 > end) {
         return NULL;
     }
 
-    *ptr++ = AMF0_OBJECT;
+    *ptr++ = AMF0_ECMA_ARRAY;
 
-    return ptr;
+    // associative-count: 4 bytes
+    return amf0_write_int32(ptr, end, array_length);
 }
 
 uint8_t *amf0_write_object_end(uint8_t* ptr, const uint8_t* end)
@@ -104,6 +139,21 @@ uint8_t *amf0_write_object_end(uint8_t* ptr, const uint8_t* end)
     return ptr;
 }
 
+uint8_t *amf0_write_long_string(uint8_t *ptr, const uint8_t *end, const char *string, size_t length)
+{
+    if (!ptr || length > UINT32_MAX || ptr + 1 + 4 + length > end) {
+        return NULL;
+    }
+
+    *ptr++ = AMF0_LONG_STRING;
+
+    return amf0_write_string32(ptr, end, string, length);
+}
+
+
+
+
+
 uint8_t *amf0_write_typed_object(uint8_t* ptr, const uint8_t* end)
 {
     if (!ptr || ptr + 1 > end) {
@@ -115,74 +165,19 @@ uint8_t *amf0_write_typed_object(uint8_t* ptr, const uint8_t* end)
     return ptr;
 }
 
-uint8_t *amf0_write_ecma_array(uint8_t* ptr, const uint8_t* end)
-{
-    if (!ptr || ptr + 1 > end) {
-        return NULL;
-    }
 
-    *ptr++ = AMF0_ECMA_ARRAY;
 
-    // associative-count 0x0000 0000
-    return amf0_write_int32(ptr, end, 0);
-}
 
-uint8_t *amf0_write_boolean(uint8_t *ptr, const uint8_t *end, uint8_t value)
-{
-    if (!ptr || ptr + 2 > end) {
-        return NULL;
-    }
 
-    ptr[0] = AMF0_BOOLEAN;
-    ptr[1] = value == 0 ? 0 : 1;
 
-    return ptr + 2;
-}
 
-uint8_t *amf0_write_double(uint8_t *ptr, const uint8_t *end, double value)
-{
-    uint8_t *double_ptr;
 
-    if (!ptr || ptr + 9 > end) {
-        return NULL;
-    }
-
-    double_ptr = (uint8_t *) &value;
-
-    *ptr++ = AMF0_NUMBER;
-
-    *ptr++ = double_ptr[7];
-    *ptr++ = double_ptr[6];
-    *ptr++ = double_ptr[5];
-    *ptr++ = double_ptr[4];
-    *ptr++ = double_ptr[3];
-    *ptr++ = double_ptr[2];
-    *ptr++ = double_ptr[1];
-    *ptr++ = double_ptr[0];
-
-    return ptr;
-}
-
-uint8_t *amf0_write_string(uint8_t *ptr, const uint8_t *end, const char *string, size_t length)
-{
-    if (!ptr || ptr + 1 + (length <= UINT16_MAX ? 2 : 4) + length > end || length > UINT32_MAX) {
-        return NULL;
-    }
-
-    if (length <= UINT16_MAX) {
-        *ptr++ = AMF0_STRING;
-
-        return amf0_write_string16(ptr, end, string, length);
-    } else {
-        *ptr++ = AMF0_LONG_STRING;
-
-        return amf0_write_string32(ptr, end, string, length);
-    }
-}
 
 uint8_t *amf0_write_date(uint8_t *ptr, const uint8_t *end, double milliseconds, int16_t timezone)
 {
-
+    if (!ptr || ptr + 11 > end) {
+        return NULL;
+    }
 }
 
 uint8_t *amf0_write_named_string(uint8_t *ptr, const uint8_t *end, const char *name, size_t length, const char *value, size_t length2)
