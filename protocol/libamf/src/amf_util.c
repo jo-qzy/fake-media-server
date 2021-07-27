@@ -6,7 +6,7 @@
 
 #include <string.h>
 
-inline uint8_t *amf0_write_int16(uint8_t *ptr, const uint8_t *end, uint16_t value)
+inline uint8_t *amf_write_int16(uint8_t *ptr, const uint8_t *end, uint16_t value)
 {
     if (ptr + 2 > end) {
         return NULL;
@@ -18,7 +18,7 @@ inline uint8_t *amf0_write_int16(uint8_t *ptr, const uint8_t *end, uint16_t valu
     return ptr + 2;
 }
 
-inline uint8_t *amf0_write_int32(uint8_t *ptr, const uint8_t *end, uint32_t value)
+inline uint8_t *amf_write_int32(uint8_t *ptr, const uint8_t *end, uint32_t value)
 {
     if (ptr + 4 > end) {
         return NULL;
@@ -32,25 +32,25 @@ inline uint8_t *amf0_write_int32(uint8_t *ptr, const uint8_t *end, uint32_t valu
     return ptr + 4;
 }
 
-inline uint8_t *amf0_write_string16(uint8_t *ptr, const uint8_t *end, const char *str, size_t length)
+inline uint8_t *amf_write_string16(uint8_t *ptr, const uint8_t *end, const char *str, size_t length)
 {
     if (ptr + 2 + length > end || !str) {
         return NULL;
     }
 
-    ptr = amf0_write_int16(ptr, end, (uint16_t) length);
+    ptr = amf_write_int16(ptr, end, (uint16_t) length);
     memcpy(ptr, str, length);
 
     return ptr + length;
 }
 
-inline uint8_t *amf0_write_string32(uint8_t *ptr, const uint8_t *end, const char *str, size_t length)
+inline uint8_t *amf_write_string32(uint8_t *ptr, const uint8_t *end, const char *str, size_t length)
 {
     if (ptr + 4 + length > end || !str) {
         return NULL;
     }
 
-    ptr = amf0_write_int32(ptr, end, (uint16_t) length);
+    ptr = amf_write_int32(ptr, end, (uint16_t) length);
     memcpy(ptr, str, length);
 
     return ptr + length;

@@ -2,11 +2,12 @@
 // Created by BoringWednesday on 2021/7/7.
 //
 
-#ifndef LIBAMF0_AMF0_H
-#define LIBAMF0_AMF0_H
+#ifndef LIBAMF_AMF0_H
+#define LIBAMF_AMF0_H
 
 #include <stdint.h>
-#include <stddef.h>
+
+#include "amf_item.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,25 +35,26 @@ enum amf0_type_t
     AMF0_AVMPLUS_OBJECT = 0x11
 };
 
+uint8_t *amf0_write(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
+
 uint8_t *amf0_write_number(uint8_t *ptr, const uint8_t *end, double value);
 uint8_t *amf0_write_boolean(uint8_t *ptr, const uint8_t *end, uint8_t value);
 uint8_t *amf0_write_string(uint8_t *ptr, const uint8_t *end, const char *string, size_t length);
-uint8_t *amf0_write_object(uint8_t *ptr, const uint8_t *end);
-uint8_t *amf0_write_movieclip(uint8_t *ptr, const uint8_t *end);
+uint8_t *amf0_write_object(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
+uint8_t *amf0_write_movie_clip(uint8_t *ptr, const uint8_t *end);
 uint8_t *amf0_write_null(uint8_t *ptr, const uint8_t *end);
 uint8_t *amf0_write_undefined(uint8_t *ptr, const uint8_t *end);
 uint8_t *amf0_write_reference(uint8_t *ptr, const uint8_t *end, uint16_t reference);
-uint8_t *amf0_write_ecma_array(uint8_t *ptr, const uint8_t *end, uint32_t array_length);
+uint8_t *amf0_write_ecma_array(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
 uint8_t *amf0_write_object_end(uint8_t *ptr, const uint8_t *end);
-uint8_t *amf0_write_long_string(uint8_t *ptr, const uint8_t *end, const char *string, size_t length);
-
-uint8_t *amf0_write_typed_object(uint8_t *ptr, const uint8_t *end);
-
+uint8_t *amf0_write_strict_array(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
 uint8_t *amf0_write_date(uint8_t *ptr, const uint8_t *end, double milliseconds, int16_t timezone);
-
-uint8_t *amf0_write_named_string(uint8_t *ptr, const uint8_t *end, const char *name, size_t length, const char *value, size_t length2);
-uint8_t *amf0_write_named_number(uint8_t *ptr, const uint8_t *end, const char *name, size_t length, double value);
-uint8_t *amf0_write_named_boolean(uint8_t *ptr, const uint8_t *end, const char *name, size_t length, uint8_t value);
+uint8_t *amf0_write_long_string(uint8_t *ptr, const uint8_t *end, const char *string, size_t length);
+uint8_t *amf0_write_unsupported(uint8_t *ptr, const uint8_t *end);
+uint8_t *amf0_write_recordset(uint8_t *ptr, const uint8_t *end);
+uint8_t *amf0_write_xml_document(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
+uint8_t *amf0_write_typed_object(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
+uint8_t *amf0_write_avmplus_object(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
 
 const uint8_t *amf0_read_null(const uint8_t *ptr, const uint8_t *end);
 const uint8_t *amf0_read_undefined(const uint8_t *ptr, const uint8_t *end);
@@ -65,4 +67,4 @@ const uint8_t *amf0_read_date(const uint8_t *ptr, const uint8_t *end, double *mi
 }
 #endif
 
-#endif //LIBAMF0_AMF0_H
+#endif //LIBAMF_AMF0_H

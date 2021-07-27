@@ -8,9 +8,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
-uint8_t *amf0_write_int16(uint8_t *ptr, const uint8_t *end, uint16_t value);
-uint8_t *amf0_write_int32(uint8_t *ptr, const uint8_t *end, uint32_t value);
-uint8_t *amf0_write_string16(uint8_t *ptr, const uint8_t *end, const char *str, size_t length);
-uint8_t *amf0_write_string32(uint8_t *ptr, const uint8_t *end, const char *str, size_t length);
+#define AMF_CHECK_POINTER(ptr) if (ptr) { return NULL; }
+
+uint8_t *amf_write_int16(uint8_t *ptr, const uint8_t *end, uint16_t value);
+uint8_t *amf_write_int32(uint8_t *ptr, const uint8_t *end, uint32_t value);
+uint8_t *amf_write_string16(uint8_t *ptr, const uint8_t *end, const char *str, size_t length);
+uint8_t *amf_write_string32(uint8_t *ptr, const uint8_t *end, const char *str, size_t length);
 
 #endif //LIBAMF_AMF_UTIL_H
