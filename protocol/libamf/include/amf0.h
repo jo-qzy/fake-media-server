@@ -41,27 +41,24 @@ uint8_t *amf0_write_number(uint8_t *ptr, const uint8_t *end, double value);
 uint8_t *amf0_write_boolean(uint8_t *ptr, const uint8_t *end, uint8_t value);
 uint8_t *amf0_write_string(uint8_t *ptr, const uint8_t *end, const char *string, size_t length);
 uint8_t *amf0_write_object(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
-uint8_t *amf0_write_movie_clip(uint8_t *ptr, const uint8_t *end);
 uint8_t *amf0_write_null(uint8_t *ptr, const uint8_t *end);
 uint8_t *amf0_write_undefined(uint8_t *ptr, const uint8_t *end);
 uint8_t *amf0_write_reference(uint8_t *ptr, const uint8_t *end, uint16_t reference);
 uint8_t *amf0_write_ecma_array(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
 uint8_t *amf0_write_object_end(uint8_t *ptr, const uint8_t *end);
 uint8_t *amf0_write_strict_array(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
-uint8_t *amf0_write_date(uint8_t *ptr, const uint8_t *end, double milliseconds, int16_t timezone);
+uint8_t *amf0_write_date(uint8_t *ptr, const uint8_t *end, double milliseconds, uint16_t timezone);
 uint8_t *amf0_write_long_string(uint8_t *ptr, const uint8_t *end, const char *string, size_t length);
-uint8_t *amf0_write_unsupported(uint8_t *ptr, const uint8_t *end);
-uint8_t *amf0_write_recordset(uint8_t *ptr, const uint8_t *end);
 uint8_t *amf0_write_xml_document(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
 uint8_t *amf0_write_typed_object(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
 uint8_t *amf0_write_avmplus_object(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
 
-const uint8_t *amf0_read_null(const uint8_t *ptr, const uint8_t *end);
-const uint8_t *amf0_read_undefined(const uint8_t *ptr, const uint8_t *end);
-const uint8_t *amf0_read_boolean(const uint8_t *ptr, const uint8_t *end, uint8_t *value);
-const uint8_t *amf0_read_double(const uint8_t *ptr, const uint8_t *end, double *value);
-const uint8_t *amf0_read_string(const uint8_t *ptr, const uint8_t *end, int isLongString, char *string, size_t length);
-const uint8_t *amf0_read_date(const uint8_t *ptr, const uint8_t *end, double *milliseconds, int16_t *timezone);
+//const uint8_t *amf0_read_null(const uint8_t *ptr, const uint8_t *end);
+//const uint8_t *amf0_read_undefined(const uint8_t *ptr, const uint8_t *end);
+//const uint8_t *amf0_read_boolean(const uint8_t *ptr, const uint8_t *end, uint8_t *value);
+//const uint8_t *amf0_read_double(const uint8_t *ptr, const uint8_t *end, double *value);
+//const uint8_t *amf0_read_string(const uint8_t *ptr, const uint8_t *end, int isLongString, char *string, size_t length);
+//const uint8_t *amf0_read_date(const uint8_t *ptr, const uint8_t *end, double *milliseconds, int16_t *timezone);
 
 #ifdef __cplusplus
 }

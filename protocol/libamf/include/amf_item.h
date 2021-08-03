@@ -7,6 +7,8 @@
 
 #include <stddef.h>
 
+#define AMF_CHECK_POINTER(ptr) if (!ptr) { return NULL; }
+
 struct amf_object_item_t
 {
     int         type;
