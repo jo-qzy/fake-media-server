@@ -230,7 +230,7 @@ uint8_t *amf3_write_date(uint8_t *ptr, const uint8_t *end, double timestamp)
 
 uint8_t *amf3_write_array(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item)
 {
-    int index;
+    size_t i;
 
     if (!ptr || ptr + 1 > end || !item || item->type != AMF3_ARRAY) {
         return NULL;
@@ -242,8 +242,8 @@ uint8_t *amf3_write_array(uint8_t *ptr, const uint8_t *end, struct amf_object_it
 
     AMF_CHECK_POINTER(item->value);
     associative_portion = item->value;
-    for (index = 0; index < associative_portion->size; index++) {
-        struct amf_object_item_t *current_item = ((struct amf_object_item_t *) associative_portion->value) + index;
+    for (i = 0; i < associative_portion->size; i++) {
+        struct amf_object_item_t *current_item = ((struct amf_object_item_t *) associative_portion->value) + i;
 
         AMF_CHECK_POINTER(current_item->name);
         ptr = amf3_write_string29(ptr, end, current_item->name, strlen(current_item->name));
@@ -252,8 +252,8 @@ uint8_t *amf3_write_array(uint8_t *ptr, const uint8_t *end, struct amf_object_it
         AMF_CHECK_POINTER(ptr);
     }
 
-    for (index = 1; index < item->size; index++) {
-        ptr = amf3_write(ptr, end, ((struct amf_object_item_t *) item->value) + index);
+    for (i = 1; i < item->size; i++) {
+        ptr = amf3_write(ptr, end, ((struct amf_object_item_t *) item->value) + i);
         AMF_CHECK_POINTER(ptr);
     }
 
@@ -262,7 +262,7 @@ uint8_t *amf3_write_array(uint8_t *ptr, const uint8_t *end, struct amf_object_it
 
 uint8_t *amf3_write_object(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item)
 {
-    int index;
+    size_t i;
 
     if (!ptr || ptr + 1 > end || !item || item->type != AMF3_ARRAY) {
         return NULL;
@@ -276,8 +276,8 @@ uint8_t *amf3_write_object(uint8_t *ptr, const uint8_t *end, struct amf_object_i
     AMF_CHECK_POINTER(item->name);
     ptr = amf3_write_string29(ptr, end, item->name, strlen(item->name));
 
-    for (index = 1; index < item->size; index++) {
-        struct amf_object_item_t *current_item = ((struct amf_object_item_t *) item->value) + index;
+    for (i = 1; i < item->size; i++) {
+        struct amf_object_item_t *current_item = ((struct amf_object_item_t *) item->value) + i;
 
         AMF_CHECK_POINTER(current_item->name);
         ptr = amf3_write_string29(ptr, end, current_item->name, strlen(current_item->name));
@@ -309,4 +309,9 @@ uint8_t *amf3_write_byte_array(uint8_t *ptr, const uint8_t *end, const char *str
     *ptr++ = AMF3_BYTEARRAY;
 
     return amf3_write_string29(ptr, end, string, length);
+}
+
+const uint8_t *amf3_read(const uint8_t *data, const uint8_t *end, struct amf_object_item_t *item)
+{
+    return NULL;
 }

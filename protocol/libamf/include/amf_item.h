@@ -6,6 +6,7 @@
 #define LIBAMF_ITEM_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #define AMF_CHECK_POINTER(ptr) if (!ptr) { return NULL; }
 
@@ -16,5 +17,8 @@ struct amf_object_item_t
     void       *value;
     size_t      size;
 };
+
+struct amf_object_item_t *amf_item_create();
+void amf_item_destroy(struct amf_object_item_t *item, int version);
 
 #endif //LIBAMF_ITEM_H

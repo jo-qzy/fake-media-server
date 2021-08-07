@@ -5,7 +5,6 @@
 #ifndef LIBAMF_AMF0_H
 #define LIBAMF_AMF0_H
 
-#include <stdint.h>
 
 #include "amf_item.h"
 
@@ -35,7 +34,7 @@ enum amf0_type_t
     AMF0_AVMPLUS_OBJECT = 0x11
 };
 
-uint8_t *amf0_write(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
+uint8_t *amf0_write(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *items, size_t count);
 
 uint8_t *amf0_write_number(uint8_t *ptr, const uint8_t *end, double value);
 uint8_t *amf0_write_boolean(uint8_t *ptr, const uint8_t *end, uint8_t value);
@@ -53,12 +52,24 @@ uint8_t *amf0_write_xml_document(uint8_t *ptr, const uint8_t *end, struct amf_ob
 uint8_t *amf0_write_typed_object(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
 uint8_t *amf0_write_avmplus_object(uint8_t *ptr, const uint8_t *end, struct amf_object_item_t *item);
 
-//const uint8_t *amf0_read_null(const uint8_t *ptr, const uint8_t *end);
-//const uint8_t *amf0_read_undefined(const uint8_t *ptr, const uint8_t *end);
-//const uint8_t *amf0_read_boolean(const uint8_t *ptr, const uint8_t *end, uint8_t *value);
-//const uint8_t *amf0_read_double(const uint8_t *ptr, const uint8_t *end, double *value);
-//const uint8_t *amf0_read_string(const uint8_t *ptr, const uint8_t *end, int isLongString, char *string, size_t length);
-//const uint8_t *amf0_read_date(const uint8_t *ptr, const uint8_t *end, double *milliseconds, int16_t *timezone);
+const uint8_t *amf0_read(const uint8_t *data, const uint8_t *end, struct amf_object_item_t *items, size_t count);
+
+const uint8_t *amf0_read_number(const uint8_t *data, const uint8_t *end, double *value);
+const uint8_t *amf0_read_boolean(const uint8_t *data, const uint8_t *end, uint8_t *value);
+const uint8_t *amf0_read_string(const uint8_t *data, const uint8_t *end, char *string, size_t *length);
+const uint8_t *amf0_read_object(const uint8_t *data, const uint8_t *end, struct amf_object_item_t *item);
+const uint8_t *amf0_read_null(const uint8_t *data, const uint8_t *end);
+const uint8_t *amf0_read_undefined(const uint8_t *data, const uint8_t *end);
+const uint8_t *amf0_read_reference(const uint8_t *data, const uint8_t *end, uint16_t *reference);
+const uint8_t *amf0_read_ecma_array(const uint8_t *data, const uint8_t *end, struct amf_object_item_t *item);
+const uint8_t *amf0_read_object_end(const uint8_t *data, const uint8_t *end);
+const uint8_t *amf0_read_strict_array(const uint8_t *data, const uint8_t *end, struct amf_object_item_t *item);
+const uint8_t *amf0_read_date(const uint8_t *data, const uint8_t *end, double *milliseconds, uint16_t *timezone);
+const uint8_t *amf0_read_long_string(const uint8_t *data, const uint8_t *end, char *string, size_t *length);
+const uint8_t *amf0_read_xml_document(const uint8_t *data, const uint8_t *end, struct amf_object_item_t *item);
+const uint8_t *amf0_read_typed_object(const uint8_t *data, const uint8_t *end, struct amf_object_item_t *item);
+const uint8_t *amf0_read_avmplus_object(const uint8_t *data, const uint8_t *end, struct amf_object_item_t *item);
+
 
 #ifdef __cplusplus
 }

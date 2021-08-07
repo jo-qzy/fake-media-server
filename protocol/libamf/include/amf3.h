@@ -5,7 +5,6 @@
 #ifndef LIBAMF_AMF3_H
 #define LIBAMF_AMF3_H
 
-#include <stdint.h>
 
 #include "amf_item.h"
 
@@ -47,6 +46,7 @@ uint8_t *amf3_write_object(uint8_t *ptr, const uint8_t *end, struct amf_object_i
 uint8_t *amf3_write_xml(uint8_t *ptr, const uint8_t *end, const char *string, size_t length);
 uint8_t *amf3_write_byte_array(uint8_t *ptr, const uint8_t *end, const char *string, size_t length);
 
+const uint8_t *amf3_read(const uint8_t *data, const uint8_t *end, struct amf_object_item_t *item);
 
 #ifdef __cplusplus
 }
