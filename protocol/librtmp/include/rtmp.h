@@ -27,10 +27,10 @@ typedef enum rtmp_status_t
     RTMP_STATUS_DELETE_STREAM   = 6
 } rtmp_status_t;
 
-struct rtmp_handler_t
+typedef struct rtmp_handler_t
 {
     int (*on_send)(void *param, const uint8_t *header, uint32_t header_bytes, const uint8_t *payload, uint32_t payload_bytes);
-};
+} rtmp_handler_t;
 
 struct rtmp_t
 {
@@ -49,15 +49,15 @@ struct rtmp_t
     uint8_t                 handshake[2 * RTMP_HANDSHAKE_LENGTH + 1];
     size_t                  handshake_bytes;
 
-    struct rtmp_packet_t    in_packets[RTMP_MAX_CHUNK_STREAM];
-    struct rtmp_packet_t    out_packets[RTMP_MAX_CHUNK_STREAM];
+    rtmp_packet_t           in_packets[RTMP_MAX_CHUNK_STREAM];
+    rtmp_packet_t           out_packets[RTMP_MAX_CHUNK_STREAM];
 
     int (*on_send)(void *param, const uint8_t *header, uint32_t header_bytes, const uint8_t *payload, uint32_t payload_bytes);
 
 };
 
 
-struct rtmp_t *rtmp_create(void *param, int is_client, const struct rtmp_handler_t *handler);
+struct rtmp_t *rtmp_create(void *param, int is_client, const rtmp_handler_t *handler);
 
 void rtmp_destroy(struct rtmp_t *rtmp);
 

@@ -21,7 +21,7 @@ Most of the features listed below are not supported, to be done...
 - [ ] Play media by RTMP
 - [ ] Play media by HTTP-HLS (support both TS and fmp4)
 - [ ] Play media by HTTP-FLV
-- [ ] Play media by WebRTC 
+- [ ] Play media by WebRTC
 
 # How To Build
 
@@ -42,6 +42,18 @@ cmake -P build/cmake_install.cmake
 ```shell
 ./bin/fake_media_server -c conf/fake.conf
 ```
+
+# Directory description
+
+| Directory | Instructions                                                 |
+| :-------: | :----------------------------------------------------------- |
+|  common   | Server base component code, including **network/protocol adapter/common tool** (like log, IO buffer, signal handle) code, most core code is in here. |
+|   conf    | Server configuration example directory.                      |
+|    doc    | Document of media format and protocol standard.              |
+| protocol  | Protocol and media format implementation source code.        |
+|  scripts  | Include some scripts to create development environments and build servers easier. |
+|  source   | Server implementation code.                                  |
+|   test    | Include some unit test.                                      |
 
 # In Addition
 

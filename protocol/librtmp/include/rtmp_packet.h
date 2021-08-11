@@ -45,7 +45,7 @@ struct rtmp_chunk_header_t
     uint32_t    message_stream_id;
 };
 
-struct rtmp_packet_t
+typedef struct rtmp_packet_t
 {
     /* Header of packet */
     struct rtmp_chunk_header_t header;
@@ -58,7 +58,7 @@ struct rtmp_packet_t
 
     /* Max buffer capacity of payload */
     size_t      capacity;
-};
+} rtmp_packet_t;
 
 
 #endif //LIBRTMP_PACKET_H
