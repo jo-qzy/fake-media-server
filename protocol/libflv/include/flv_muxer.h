@@ -13,17 +13,17 @@ extern "C" {
 
 typedef struct flv_muxer_handler_t
 {
-
+    void *param;
 } flv_muxer_handler_t;
 
 typedef struct flv_muxer_t
 {
-
+    void *param;
 } flv_muxer_t;
 
-int flv_muxer_aac(flv_muxer_t *muxer, const void *data, size_t bytes, uint32_t pts, uint32_t dts);
+int flv_muxer_aac(flv_muxer_t *muxer, const void *data, uint32_t bytes, uint32_t pts, uint32_t dts);
 
-int flv_muxer_avc(flv_muxer_t *muxer, const void *data, size_t bytes, uint32_t pts, uint32_t dts);
+int flv_muxer_avc(flv_muxer_t *muxer, const void *data, uint32_t bytes, uint32_t pts, uint32_t dts);
 
 #if defined(__cplusplus)
 }

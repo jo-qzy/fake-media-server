@@ -51,7 +51,7 @@ void flv_writer_destroy(flv_writer_t *flv)
     free(flv);
 }
 
-int flv_writer_input(flv_writer_t *flv, int type, uint32_t timestamp, const void *data, size_t bytes)
+int flv_writer_input(flv_writer_t *flv, int type, uint32_t timestamp, const void *data, uint32_t bytes)
 {
     flv_tag_t   tag;
     flv_vec_t   vec[3];

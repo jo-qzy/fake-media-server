@@ -8,10 +8,6 @@
 #include <assert.h>
 #include <string.h>
 
-#define FLV_HEADER_SIZE             9
-#define FLV_PREVIOUS_TAG_LENGTH     4
-#define FLV_TAG_HEADER_SIZE         11
-
 static inline const uint8_t *flv_read_uint24_be(const uint8_t *ptr, const uint8_t *end, uint32_t *val)
 {
     if (ptr + 3 > end) {
@@ -53,7 +49,7 @@ static inline uint8_t *flv_write_uint32_be(uint8_t *ptr, const uint8_t *end, uin
     return ptr + 4;
 }
 
-int flv_header_read(flv_header_t *header, const uint8_t *buf, size_t len)
+int flv_header_read(flv_header_t *header, const uint8_t *buf, uint32_t len)
 {
     if (!header || len < FLV_HEADER_SIZE || 'F' != buf[0] || 'L' != buf[1] || 'V' != buf[2]) {
         return -1;
@@ -67,10 +63,13 @@ int flv_header_read(flv_header_t *header, const uint8_t *buf, size_t len)
     header->video = buf[4] & 0x01;
     flv_read_uint32_be(buf + 5, buf + len, &header->data_offset);
 
+    if (1 == header->version && FLV_HEADER_SIZE != header->data_offset)
+        return -1;
+
     return FLV_HEADER_SIZE;
 }
 
-int flv_header_write(int audio, int video, uint8_t* buf, size_t len)
+int flv_header_write(int audio, int video, uint8_t* buf, uint32_t len)
 {
     if (!buf || len < FLV_HEADER_SIZE) {
         return -1;
@@ -86,7 +85,7 @@ int flv_header_write(int audio, int video, uint8_t* buf, size_t len)
     return FLV_HEADER_SIZE;
 }
 
-int flv_tag_read(flv_tag_t *tag, const uint8_t *buf, size_t len)
+int flv_tag_read(flv_tag_t *tag, const uint8_t *buf, uint32_t len)
 {
     const uint8_t *end;
 
@@ -113,7 +112,7 @@ int flv_tag_read(flv_tag_t *tag, const uint8_t *buf, size_t len)
     return FLV_TAG_HEADER_SIZE;
 }
 
-int flv_tag_write(const flv_tag_t *tag, uint8_t *buf, size_t len)
+int flv_tag_write(const flv_tag_t *tag, uint8_t *buf, uint32_t len)
 {
     const uint8_t *end;
 
@@ -135,11 +134,10 @@ int flv_tag_write(const flv_tag_t *tag, uint8_t *buf, size_t len)
     return FLV_TAG_HEADER_SIZE;
 }
 
-int flv_audio_tag_header_read(flv_audio_tag_header_t *audio_tag, const uint8_t *buf, size_t len)
+int flv_audio_tag_header_read(flv_audio_tag_header_t *audio_tag, const uint8_t *buf, uint32_t len)
 {
-    if (!audio_tag || !buf || len < 1) {
+    if (!audio_tag || !buf || len < 1)
         return -1;
-    }
 
     audio_tag->sound_format = (buf[0] >> 4) & 0x0F;
     audio_tag->sound_rate = (buf[0] >> 2) & 0x03;
@@ -149,9 +147,8 @@ int flv_audio_tag_header_read(flv_audio_tag_header_t *audio_tag, const uint8_t *
     assert(audio_tag->sound_format <= 15 && 9 != audio_tag->sound_format && 13 != audio_tag->sound_format);
 
     if (FLV_AUDIO_AAC == audio_tag->sound_format) {
-        if (len < 2) {
+        if (len < 2)
             return -1;
-        }
 
         audio_tag->aac_packet_type = buf[1];
         assert(buf[1] <= 1);
@@ -162,7 +159,7 @@ int flv_audio_tag_header_read(flv_audio_tag_header_t *audio_tag, const uint8_t *
     return 1;
 }
 
-int flv_audio_tag_header_write(const flv_audio_tag_header_t *audio_tag, uint8_t *buf, size_t len)
+int flv_audio_tag_header_write(const flv_audio_tag_header_t *audio_tag, uint8_t *buf, uint32_t len)
 {
     if (!audio_tag || !buf || len < 1 + (FLV_AUDIO_AAC == audio_tag->sound_format ? 1 : 0)) {
         return -1;
@@ -185,7 +182,7 @@ int flv_audio_tag_header_write(const flv_audio_tag_header_t *audio_tag, uint8_t 
     return 1;
 }
 
-int flv_video_tag_header_read(flv_video_tag_header_t *video_tag, const uint8_t *buf, size_t len)
+int flv_video_tag_header_read(flv_video_tag_header_t *video_tag, const uint8_t *buf, uint32_t len)
 {
     uint32_t composition_time_offset;
 
@@ -199,9 +196,8 @@ int flv_video_tag_header_read(flv_video_tag_header_t *video_tag, const uint8_t *
     assert(video_tag->frame_type <= 5 && video_tag->codec_id >= 2 && video_tag->codec_id <= 7);
 
     if (FLV_VIDEO_H264 == video_tag->codec_id) {
-        if (len < 5) {
+        if (len < 5)
             return -1;
-        }
 
         video_tag->avc_packet_type = buf[1];
         assert(video_tag->avc_packet_type <= 2);
@@ -217,13 +213,12 @@ int flv_video_tag_header_read(flv_video_tag_header_t *video_tag, const uint8_t *
     return 1;
 }
 
-int flv_video_tag_header_write(const flv_video_tag_header_t *video_tag, uint8_t *buf, size_t len)
+int flv_video_tag_header_write(const flv_video_tag_header_t *video_tag, uint8_t *buf, uint32_t len)
 {
     uint32_t composition_time_offset;
 
-    if (!video_tag || !buf || len < 1 + (FLV_VIDEO_H264 == video_tag->codec_id ? 4 : 0)) {
+    if (!video_tag || !buf || len < 1 + (FLV_VIDEO_H264 == video_tag->codec_id ? 4 : 0))
         return -1;
-    }
 
     assert(video_tag->frame_type <= 5 && video_tag->codec_id >= 2 && video_tag->codec_id <= 7);
 
@@ -243,12 +238,12 @@ int flv_video_tag_header_write(const flv_video_tag_header_t *video_tag, uint8_t 
     return 1;
 }
 
-inline int flv_tag_size_read(const uint8_t *buf, size_t len, uint32_t *tag_size)
+inline int flv_tag_size_read(const uint8_t *buf, uint32_t len, uint32_t *tag_size)
 {
     return flv_read_uint32_be(buf, buf + len, tag_size) ? 4 : 0;
 }
 
-inline int flv_tag_size_write(uint8_t *buf, size_t len, uint32_t tag_size)
+inline int flv_tag_size_write(uint8_t *buf, uint32_t len, uint32_t tag_size)
 {
     return flv_write_uint32_be(buf, buf + len, tag_size) ? 4 : 0;
 }

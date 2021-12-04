@@ -17,26 +17,24 @@ extern "C" {
 typedef struct flv_writer_handler_t
 {
     /// @param[in] param User parameters
-    /// @param[in] header flv tag header
-    /// @param[in] header_len flv tag header length
-    /// @param[in] data flv audio/video data
-    /// @param[in] bytes length of audio/video data
+    /// @param[in] vec flv data vector
+    /// @param[in] len flv data length
     /// @return 0-ok, other-error
-    int (*on_write)(void *param, flv_vec_t *vec, size_t len);
+    int (*on_write)(void *param, flv_vec_t *vec, uint32_t len);
 } flv_writer_handler_t;
 
 typedef struct flv_writer_t
 {
     void   *param;
 
-    int (*on_write)(void *param, flv_vec_t *vec, size_t len);
+    int (*on_write)(void *param, flv_vec_t *vec, uint32_t len);
 } flv_writer_t;
 
 flv_writer_t *flv_writer_create(void* param, int audio, int video, flv_writer_handler_t *handler);
 
 void flv_writer_destroy(flv_writer_t *flv);
 
-int flv_writer_input(flv_writer_t *flv, int type, uint32_t timestamp, const void *data, size_t bytes);
+int flv_writer_input(flv_writer_t *flv, int type, uint32_t timestamp, const void *data, uint32_t bytes);
 
 #if defined(__cplusplus)
 }
