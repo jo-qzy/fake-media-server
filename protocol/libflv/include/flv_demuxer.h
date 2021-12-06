@@ -31,6 +31,6 @@ void flv_demuxer_destroy(flv_demuxer_t *demuxer);
 /// @param[in] bytes data length in byte
 /// @param[in] timestamp milliseconds relative to the first tag(DTS)
 /// @return 0-ok, other-error
-int flv_demuxer_input(flv_demuxer_t *demuxer, int type, const void *data, size_t bytes, uint32_t timestamp);
+int flv_demuxer_input(flv_demuxer_t *demuxer, int tag_type, const void *data, size_t bytes, uint32_t timestamp);
 
 #endif //LIBFLV_FLV_DEMUXER_H

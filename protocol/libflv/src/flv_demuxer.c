@@ -3,6 +3,8 @@
 //
 
 #include "flv_demuxer.h"
+#include "flv_header.h"
+#include "flv_type.h"
 
 #include <stdlib.h>
 #include <memory.h>
@@ -51,9 +53,55 @@ void flv_demuxer_destroy(flv_demuxer_t *demuxer)
     free(demuxer);
 }
 
-int flv_demuxer_input(flv_demuxer_t *demuxer, int type, const void *data, size_t bytes, uint32_t timestamp)
+static int flv_demuxer_audio(flv_demuxer_t *demuxer, const void *data, size_t bytes, uint32_t timestamp)
 {
-    switch (type) {
-        case (FLV_)
+    flv_audio_tag_header_t audio_header;
+    int read_size;
+
+    read_size = flv_audio_tag_header_read(&audio_header, data, bytes);
+    if (-1 == read_size)
+        return -1;
+
+    return 0;
+}
+
+static int flv_demuxer_video(flv_demuxer_t *demuxer, const void *data, size_t bytes, uint32_t timestamp)
+{
+    flv_video_tag_header_t video_header;
+    int read_size;
+
+    read_size = flv_video_tag_header_read(&video_header, data, bytes);
+    if (-1 == read_size)
+        return -1;
+
+    switch (video_header.codec_id) {
+        case FLV_VIDEO_H264:
+            if (FLV_SEQUENCE_HEADER == video_header.avc_packet_type) {
+                // ISO/IEC 14496-15: AVCDecoderConfigurationRecord
+                // ISO/IEC 14496-10: Sequence parameter set RBSP syntax
+                // ISO/IEC 14496-10: Picture parameter set RBSP syntax
+
+            }
+    }
+
+    return 0;
+}
+
+int flv_demuxer_input(flv_demuxer_t *demuxer, int tag_type, const void *data, size_t bytes, uint32_t timestamp)
+{
+    if (!demuxer)
+        return -1;
+
+    switch (tag_type) {
+        case FLV_AUDIO:
+            return flv_demuxer_audio(demuxer, data, bytes, timestamp);
+
+        case FLV_VIDEO:
+            return flv_demuxer_video(demuxer, data, bytes, timestamp);
+
+        case FLV_SCRIPT:
+//            return flv_demuxer_script();
+        default:
+            return -1;
     }
 }

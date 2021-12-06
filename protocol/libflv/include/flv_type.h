@@ -38,4 +38,19 @@
 #define FLV_VIDEO_HVCC		0x201 // HEVCDecoderConfigurationRecord(ISO-14496-15)
 #define FLV_VIDEO_AV1C		0x202 // AV1CodecConfigurationRecord(av1-isobmff)
 
+enum flv_frame_type_t
+{
+    FLV_KEY_FRAME               = 1, // For AVC, a seekable frame
+    FLV_INTER_FRAME             = 2, // For AVC, a non-seekable frame
+    FLV_DISPOSABLE_INTER_FRAME  = 3,
+    FLV_GENERATED_KEY_FRAME     = 4,
+    FLV_VIDEO_INFO              = 5,
+};
+
+enum flv_packet_type_t
+{
+    FLV_SEQUENCE_HEADER = 0, // Audio/Video Sequence header (for AAC/AVC)
+    FLV_MEDIA_PACKET    = 1, // Audio/Video media packet (AAC: one frame, AVC: one or more NALUs)
+};
+
 #endif //LIBFLV_FLV_TYPE_H

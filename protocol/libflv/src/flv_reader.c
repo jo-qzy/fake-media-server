@@ -128,5 +128,5 @@ int flv_reader_read(flv_reader_t *reader, int *tag_type, uint32_t *timestamp, ui
         flv_tag_size_read((uint8_t *) &previous_size, FLV_PREVIOUS_TAG_LENGTH, &previous_size))
         return -1;
 
-    return (previous_size == tag.data_size + FLV_TAG_HEADER_SIZE) ? 1 : -1;
+    return (previous_size == (tag.data_size + FLV_TAG_HEADER_SIZE)) ? 1 : -1;
 }
