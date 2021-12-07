@@ -195,7 +195,7 @@ int mpeg4_avcc_to_annexb(mpeg4_avc_t *avc, const void *in_data, uint32_t in_byte
             nalu_size = (nalu_size << 8) | src[i];
 
         if (src + avc->length_size_minus_one + 1 + nalu_size > end)
-            return -ENOMEM;
+            return -22;
 
         src += avc->length_size_minus_one + 1;
 
@@ -223,7 +223,7 @@ int mpeg4_avcc_to_annexb(mpeg4_avc_t *avc, const void *in_data, uint32_t in_byte
         }
 
         if (dst + 4 + nalu_size > out_data + out_bytes)
-            return -ENOMEM;
+            return -22;
 
         memmove(dst, start_code, 4);
         memmove(dst + 4, src, nalu_size);

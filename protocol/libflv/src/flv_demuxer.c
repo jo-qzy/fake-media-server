@@ -111,7 +111,7 @@ static int flv_demuxer_video(flv_demuxer_t *demuxer, const uint8_t *data, uint32
                                         timestamp + video_header.composition_time_offset, timestamp, 0);
             } else if (FLV_MEDIA_PACKET == video_header.avc_packet_type) {
                 if (0 != flv_demuxer_check_and_alloc(demuxer, bytes + 1024))
-                    return -ENOMEM;
+                    return -22;
 
                 read_size = mpeg4_avcc_to_annexb(&demuxer->video.avc, data + read_size, bytes - read_size,
                                                  demuxer->buffer, demuxer->capacity);
