@@ -18,7 +18,7 @@ struct flv_reader_t
 
 static int flv_reader_read_file(void *param, void *buf, uint32_t len)
 {
-    return (int) fread(buf, len, 1, param);
+    return (int) fread(buf, 1, len, param);
 }
 
 static int flv_reader_read_header(flv_reader_t *reader)
@@ -112,7 +112,7 @@ int flv_reader_read(flv_reader_t *reader, int *tag_type, uint32_t *timestamp, ui
     if (bytes < tag.data_size)
         return -1;
 
-    read_size = reader->read(reader->param, tag_header, tag.data_size);
+    read_size = reader->read(reader->param, buffer, tag.data_size);
     if (tag.data_size != read_size)
         return read_size < 0 ? read_size : 0;
 

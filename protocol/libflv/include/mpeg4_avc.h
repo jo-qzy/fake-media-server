@@ -45,6 +45,10 @@ typedef struct mpeg4_avc_t
     } sps_ext[255];
 } mpeg4_avc_t;
 
-int mpeg4_decode_avc_decoder_configuration_record(mpeg4_avc_t *avc, const uint8_t *data, uint32_t bytes);
+int mpeg4_decode_avc_decoder_configuration_record(mpeg4_avc_t *avc, const void *data, uint32_t bytes);
+int mpeg4_get_avc_decoder_configuration_record(mpeg4_avc_t *avc, uint8_t annexb, uint8_t *data, uint32_t bytes);
+
+int mpeg4_avcc_to_annexb(mpeg4_avc_t *avc, const void *in_data, uint32_t in_bytes,
+                         uint8_t *out_data, uint32_t out_bytes);
 
 #endif //LIBFLV_MPEG4_AVC_H

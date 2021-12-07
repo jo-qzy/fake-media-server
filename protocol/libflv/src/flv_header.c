@@ -10,9 +10,8 @@
 
 static inline const uint8_t *flv_read_uint24_be(const uint8_t *ptr, const uint8_t *end, uint32_t *val)
 {
-    if (ptr + 3 > end) {
+    if (ptr + 3 > end)
         return NULL;
-    }
 
     *val = (ptr[0] << 16) | (ptr[1] << 8) | ptr[2];
 
@@ -21,9 +20,8 @@ static inline const uint8_t *flv_read_uint24_be(const uint8_t *ptr, const uint8_
 
 static inline const uint8_t *flv_read_uint32_be(const uint8_t *ptr, const uint8_t *end, uint32_t *val)
 {
-    if (ptr + 4 > end) {
+    if (ptr + 4 > end)
         return NULL;
-    }
 
     *val = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
 
@@ -32,6 +30,9 @@ static inline const uint8_t *flv_read_uint32_be(const uint8_t *ptr, const uint8_
 
 static inline uint8_t *flv_write_uint24_be(uint8_t *ptr, const uint8_t *end, uint32_t val)
 {
+    if (ptr + 3 > end)
+        return NULL;
+
     ptr[0] = (uint8_t) ((val >> 16) & 0xFF);
     ptr[1] = (uint8_t) ((val >> 8) & 0xFF);
     ptr[2] = (uint8_t) (val & 0xFF);
@@ -41,6 +42,9 @@ static inline uint8_t *flv_write_uint24_be(uint8_t *ptr, const uint8_t *end, uin
 
 static inline uint8_t *flv_write_uint32_be(uint8_t *ptr, const uint8_t *end, uint32_t val)
 {
+    if (ptr + 4 > end)
+        return NULL;
+
     ptr[0] = (uint8_t)((val >> 24) & 0xFF);
     ptr[1] = (uint8_t)((val >> 16) & 0xFF);
     ptr[2] = (uint8_t)((val >> 8) & 0xFF);
@@ -51,9 +55,8 @@ static inline uint8_t *flv_write_uint32_be(uint8_t *ptr, const uint8_t *end, uin
 
 int flv_header_read(flv_header_t *header, const uint8_t *buf, uint32_t len)
 {
-    if (!header || len < FLV_HEADER_SIZE || 'F' != buf[0] || 'L' != buf[1] || 'V' != buf[2]) {
+    if (!header || len < FLV_HEADER_SIZE || 'F' != buf[0] || 'L' != buf[1] || 'V' != buf[2])
         return -1;
-    }
 
     assert(0x00 == (buf[4] & 0xFA));
 
@@ -116,9 +119,8 @@ int flv_tag_write(const flv_tag_t *tag, uint8_t *buf, uint32_t len)
 {
     const uint8_t *end;
 
-    if (!tag || !buf || len < FLV_TAG_HEADER_SIZE) {
+    if (!tag || !buf || len < FLV_TAG_HEADER_SIZE)
         return -1;
-    }
 
     assert(0 == tag->stream_id);
     assert(FLV_VIDEO == tag->tag_type || FLV_AUDIO == tag->tag_type || FLV_SCRIPT == tag->tag_type);
@@ -161,9 +163,8 @@ int flv_audio_tag_header_read(flv_audio_tag_header_t *audio_tag, const uint8_t *
 
 int flv_audio_tag_header_write(const flv_audio_tag_header_t *audio_tag, uint8_t *buf, uint32_t len)
 {
-    if (!audio_tag || !buf || len < 1 + (FLV_AUDIO_AAC == audio_tag->sound_format ? 1 : 0)) {
+    if (!audio_tag || !buf || len < 1 + (uint32_t) (FLV_AUDIO_AAC == audio_tag->sound_format ? 1 : 0))
         return -1;
-    }
 
     assert(audio_tag->sound_format <= 15 && 9 != audio_tag->sound_format && 13 != audio_tag->sound_format);
 
@@ -217,7 +218,7 @@ int flv_video_tag_header_write(const flv_video_tag_header_t *video_tag, uint8_t 
 {
     uint32_t composition_time_offset;
 
-    if (!video_tag || !buf || len < 1 + (FLV_VIDEO_H264 == video_tag->codec_id ? 4 : 0))
+    if (!video_tag || !buf || len < 1 + (uint32_t) (FLV_VIDEO_H264 == video_tag->codec_id ? 4 : 0))
         return -1;
 
     assert(video_tag->frame_type <= 5 && video_tag->codec_id >= 2 && video_tag->codec_id <= 7);
@@ -238,12 +239,12 @@ int flv_video_tag_header_write(const flv_video_tag_header_t *video_tag, uint8_t 
     return 1;
 }
 
-inline int flv_tag_size_read(const uint8_t *buf, uint32_t len, uint32_t *tag_size)
+int flv_tag_size_read(const uint8_t *buf, uint32_t len, uint32_t *tag_size)
 {
     return flv_read_uint32_be(buf, buf + len, tag_size) ? 4 : 0;
 }
 
-inline int flv_tag_size_write(uint8_t *buf, uint32_t len, uint32_t tag_size)
+int flv_tag_size_write(uint8_t *buf, uint32_t len, uint32_t tag_size)
 {
     return flv_write_uint32_be(buf, buf + len, tag_size) ? 4 : 0;
 }

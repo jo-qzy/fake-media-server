@@ -5,21 +5,22 @@
 #include "flv_demuxer.h"
 #include "flv_header.h"
 #include "flv_type.h"
+#include "mpeg4_avc.h"
 
 #include <stdlib.h>
 #include <memory.h>
 
 struct flv_demuxer_t
 {
-    void                   *param;
-    flv_demuxer_handler     handler;
-    uint8_t                *buffer;
-    uint32_t                capacity;
+    void *param;
+    flv_demuxer_handler handler;
+    uint8_t *buffer;
+    uint32_t capacity;
 
-    // union
-    // {
-    //     struct mpeg4_avc_t avc;
-    // } video;
+    union
+    {
+        mpeg4_avc_t avc;
+    } video;
 
     // union
     // {
@@ -53,7 +54,21 @@ void flv_demuxer_destroy(flv_demuxer_t *demuxer)
     free(demuxer);
 }
 
-static int flv_demuxer_audio(flv_demuxer_t *demuxer, const void *data, size_t bytes, uint32_t timestamp)
+static int flv_demuxer_check_and_alloc(flv_demuxer_t *demuxer, uint32_t bytes)
+{
+    if (bytes > demuxer->capacity) {
+        void *ptr = realloc(demuxer->buffer, bytes);
+        if (!ptr)
+            return -1;
+
+        demuxer->buffer = (uint8_t *) ptr;
+        demuxer->capacity = bytes;
+    }
+
+    return 0;
+}
+
+static int flv_demuxer_audio(flv_demuxer_t *demuxer, const void *data, uint32_t bytes, uint32_t timestamp)
 {
     flv_audio_tag_header_t audio_header;
     int read_size;
@@ -65,7 +80,7 @@ static int flv_demuxer_audio(flv_demuxer_t *demuxer, const void *data, size_t by
     return 0;
 }
 
-static int flv_demuxer_video(flv_demuxer_t *demuxer, const void *data, size_t bytes, uint32_t timestamp)
+static int flv_demuxer_video(flv_demuxer_t *demuxer, const uint8_t *data, uint32_t bytes, uint32_t timestamp)
 {
     flv_video_tag_header_t video_header;
     int read_size;
@@ -80,14 +95,41 @@ static int flv_demuxer_video(flv_demuxer_t *demuxer, const void *data, size_t by
                 // ISO/IEC 14496-15: AVCDecoderConfigurationRecord
                 // ISO/IEC 14496-10: Sequence parameter set RBSP syntax
                 // ISO/IEC 14496-10: Picture parameter set RBSP syntax
+                if (-1 == mpeg4_decode_avc_decoder_configuration_record(&demuxer->video.avc, data + read_size,
+                                                                        bytes - read_size))
+                    return -1;
 
+                if (0 != flv_demuxer_check_and_alloc(demuxer, bytes + 1024))
+                    return -1;
+
+                read_size = mpeg4_get_avc_decoder_configuration_record(&demuxer->video.avc, 0,
+                                                                       demuxer->buffer, demuxer->capacity);
+                if (read_size < 0)
+                    return -1;
+
+                return demuxer->handler(demuxer->param, FLV_VIDEO_AVCC, demuxer->buffer, read_size,
+                                        timestamp + video_header.composition_time_offset, timestamp, 0);
+            } else if (FLV_MEDIA_PACKET == video_header.avc_packet_type) {
+                if (0 != flv_demuxer_check_and_alloc(demuxer, bytes + 1024))
+                    return -ENOMEM;
+
+                read_size = mpeg4_avcc_to_annexb(&demuxer->video.avc, data + read_size, bytes - read_size,
+                                                 demuxer->buffer, demuxer->capacity);
+                if (read_size < 0)
+                    return -1;
+
+                return demuxer->handler(demuxer->param, FLV_VIDEO_H264, demuxer->buffer, read_size,
+                                        timestamp + video_header.composition_time_offset, timestamp,
+                                        FLV_KEY_FRAME == video_header.frame_type ? 1 : 0);
             }
     }
 
-    return 0;
+    return demuxer->handler(demuxer->param, video_header.codec_id, data + read_size, bytes - read_size,
+                            timestamp + video_header.composition_time_offset,
+                            timestamp, (FLV_KEY_FRAME == video_header.frame_type) ? 1 : 0);
 }
 
-int flv_demuxer_input(flv_demuxer_t *demuxer, int tag_type, const void *data, size_t bytes, uint32_t timestamp)
+int flv_demuxer_input(flv_demuxer_t *demuxer, int tag_type, const void *data, uint32_t bytes, uint32_t timestamp)
 {
     if (!demuxer)
         return -1;
