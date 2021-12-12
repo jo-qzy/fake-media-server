@@ -8,6 +8,14 @@
 #include <assert.h>
 #include <memory.h>
 
+enum h264_nal_type_t
+{
+    H264_NAL_IDR = 5,   // Coded slice of an IDR picture
+    H264_NAL_SPS = 7,   // Sequence parameter set
+    H264_NAL_PPS = 8,   // Picture parameter set
+    H264_NAL_AUD = 9,   // Access unit delimiter
+};
+
 /*
 ISO/IEC 14496-15:2010(E)
 
@@ -167,11 +175,6 @@ int mpeg4_get_avc_decoder_configuration_record(mpeg4_avc_t *avc, uint8_t annexb,
     return read_size;
 }
 
-#define H264_NAL_IDR        5 // Coded slice of an IDR picture
-#define H264_NAL_SPS        7 // Sequence parameter set
-#define H264_NAL_PPS        8 // Picture parameter set
-#define H264_NAL_AUD        9 // Access unit delimiter
-
 int mpeg4_avcc_to_annexb(mpeg4_avc_t *avc, const void *in_data, uint32_t in_bytes,
                          uint8_t *out_data, uint32_t out_bytes)
 {
@@ -181,7 +184,6 @@ int mpeg4_avcc_to_annexb(mpeg4_avc_t *avc, const void *in_data, uint32_t in_byte
     const uint8_t start_code[4] = {0x00, 0x00, 0x00, 0x01};
 
     sps_pps_flag = 0;
-    nalu_size = 0;
     src = in_data;
     end = src + in_bytes;
     dst = out_data;

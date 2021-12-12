@@ -5,6 +5,7 @@
 #include "flv_demuxer.h"
 #include "flv_header.h"
 #include "flv_type.h"
+#include "mpeg4_aac.h"
 #include "mpeg4_avc.h"
 
 #include <stdlib.h>
@@ -22,10 +23,10 @@ struct flv_demuxer_t
         mpeg4_avc_t avc;
     } video;
 
-    // union
-    // {
-    //     struct mpeg4_aac_t aac;
-    // } audio;
+     union
+     {
+         struct mpeg4_aac_t aac;
+     } audio;
 };
 
 flv_demuxer_t *flv_demuxer_create(flv_demuxer_handler handler, void *param)
@@ -68,7 +69,7 @@ static int flv_demuxer_check_and_alloc(flv_demuxer_t *demuxer, uint32_t bytes)
     return 0;
 }
 
-static int flv_demuxer_audio(flv_demuxer_t *demuxer, const void *data, uint32_t bytes, uint32_t timestamp)
+static int flv_demuxer_audio(flv_demuxer_t *demuxer, const uint8_t *data, uint32_t bytes, uint32_t timestamp)
 {
     flv_audio_tag_header_t audio_header;
     int read_size;
@@ -77,7 +78,27 @@ static int flv_demuxer_audio(flv_demuxer_t *demuxer, const void *data, uint32_t 
     if (-1 == read_size)
         return -1;
 
-    return 0;
+    switch (audio_header.sound_format) {
+        case FLV_AUDIO_AAC:
+            if (FLV_SEQUENCE_HEADER == audio_header.aac_packet_type) {
+                // ISO/IEC 14496-3: AudioSpecificConfig
+                if (-1 == mpeg4_decode_audio_specific_config(&demuxer->audio.aac, data + read_size, bytes - read_size))
+                    return -1;
+
+                return demuxer->handler(demuxer->param, FLV_AUDIO_ASC, data + read_size, bytes - read_size, timestamp,
+                                        0, 0);
+            } else if (FLV_MEDIA_PACKET == audio_header.aac_packet_type) {
+                // AAC stream is RAW stream in flv, need transfer to ADTS format
+                read_size = mpeg4_aac_raw_to_adts(&demuxer->audio.aac, data + read_size, bytes - read_size,
+                                                  demuxer->buffer, demuxer->capacity);
+
+                return demuxer->handler(demuxer->param, FLV_AUDIO_AAC, demuxer->buffer, read_size, timestamp,
+                                        timestamp, 0);
+            }
+    }
+
+    return demuxer->handler(demuxer->param, audio_header.sound_format, data + read_size, bytes - read_size, timestamp,
+                            timestamp, 0);
 }
 
 static int flv_demuxer_video(flv_demuxer_t *demuxer, const uint8_t *data, uint32_t bytes, uint32_t timestamp)
@@ -99,9 +120,6 @@ static int flv_demuxer_video(flv_demuxer_t *demuxer, const uint8_t *data, uint32
                                                                         bytes - read_size))
                     return -1;
 
-                if (0 != flv_demuxer_check_and_alloc(demuxer, bytes + 1024))
-                    return -1;
-
                 read_size = mpeg4_get_avc_decoder_configuration_record(&demuxer->video.avc, 0,
                                                                        demuxer->buffer, demuxer->capacity);
                 if (read_size < 0)
@@ -110,9 +128,7 @@ static int flv_demuxer_video(flv_demuxer_t *demuxer, const uint8_t *data, uint32
                 return demuxer->handler(demuxer->param, FLV_VIDEO_AVCC, demuxer->buffer, read_size,
                                         timestamp + video_header.composition_time_offset, timestamp, 0);
             } else if (FLV_MEDIA_PACKET == video_header.avc_packet_type) {
-                if (0 != flv_demuxer_check_and_alloc(demuxer, bytes + 1024))
-                    return -22;
-
+                // H.264 stream is AVCC format in flv, need transfer to Annex-B format
                 read_size = mpeg4_avcc_to_annexb(&demuxer->video.avc, data + read_size, bytes - read_size,
                                                  demuxer->buffer, demuxer->capacity);
                 if (read_size < 0)
@@ -133,6 +149,9 @@ int flv_demuxer_input(flv_demuxer_t *demuxer, int tag_type, const void *data, ui
 {
     if (!demuxer)
         return -1;
+
+    if (0 != flv_demuxer_check_and_alloc(demuxer, bytes + 1024))
+        return -22;
 
     switch (tag_type) {
         case FLV_AUDIO:
